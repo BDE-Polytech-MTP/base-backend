@@ -2,8 +2,11 @@
   "name": "generic-backend",
   "version": "1.0.0",
   "description": "Generic backend logic for BDE website",
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "scripts": {
-    "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'"
+    "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'",
+    "build": "tsc"
   },
   "author": "Florent HUGOUVIEUX",
   "license": "Apache-2.0",
