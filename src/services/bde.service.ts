@@ -40,7 +40,7 @@ export interface BDEService {
 }
 
 /**
- * An error class that allows to sepcify the type of error encountered.
+ * An error class that allows to specify the type of error encountered.
  */
 export class BDEServiceError extends Error {
 
