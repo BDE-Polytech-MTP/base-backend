@@ -17,7 +17,7 @@ export interface UsersService {
      * 
      * @param user The user end registration of
      */
-    finishedRegistration(user: User): Promise<User>;
+    finishRegistration(user: User): Promise<User>;
 
     /**
      * Finds the unregistered user with the given UUID.
