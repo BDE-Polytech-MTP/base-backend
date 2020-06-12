@@ -1,3 +1,5 @@
+import {Event} from '../models';
+
 /**
  * Events access service.
  */
