@@ -24,7 +24,6 @@ export class UsersController {
                                             .requires("password").toBeString().withMinLength(10)
                                             .build();
 
-
     constructor(private usersService: UsersService) {}
 
     /**
@@ -87,10 +86,10 @@ export class UsersController {
             bdeUUID: unregisteredUser.bdeUUID,
             email: unregisteredUser.email,
 
-            firstname: result.value!.firstname,
-            lastname: result.value!.lastname,
-            specialty: result.value!.specialty,
-            password: result.value!.password,
+            firstname: result.value.firstname,
+            lastname: result.value.lastname,
+            specialty: result.value.specialty,
+            password: result.value.password,
         }
 
         try {
