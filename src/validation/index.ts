@@ -272,14 +272,7 @@ interface Validator<T> {
 
 }
 
-interface ValidationResult<T> {
-    /** True if validation is a success, false otherwise */
-    valid: boolean;
-    /** The validated value. undefined is validation failed */
-    value?: T;
-    /** The validator error. undfined is validation is a success */
-    error?: Error;
-}
+type ValidationResult<T> = { valid: true, value: T} | { valid: false, error: Error};
 
 interface BuildStep<T> {
 
