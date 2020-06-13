@@ -1,11 +1,13 @@
-import { UsersService } from "../services";
+import { UsersService, UsersErrorType } from "../services";
 import { UnregisteredUser, User } from "../models";
 import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
+import * as httpCode from '../utils/http-code';
+import { hide } from '../utils/hide';
 
 export class UsersController {
 
-    private static NEW_USER_VALIDATOR = ValidatorBuilder
+    private static UNREGISTERED_USER_VALIDATOR = ValidatorBuilder
                                             .new<{ email: string, bde: string, firstname?: string, lastname?: string}>()
                                             .requires("email").toBeString().matching(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/)
                                             .requires("bde").toBeString().withMinLength(1)
@@ -25,31 +27,60 @@ export class UsersController {
 
     constructor(private usersService: UsersService) {}
 
-    create(body: object | null): Promise<UnregisteredUser> {
+    /**
+     * Handles a user creation request. If the creation is a success,
+     * the user must complete its registration later.
+     * This method always resolves.
+     * 
+     * @param body The request body
+     */
+    async create(body: object | null): Promise<httpCode.Response> {
         // TODO: Check authorization
-        let result = UsersController.NEW_USER_VALIDATOR.validate(body);
+        let result = UsersController.UNREGISTERED_USER_VALIDATOR.validate(body);
         if (!result.valid) {
-            return Promise.reject(result.error?.message);
+            return httpCode.badRequest(result.error.message);
         }
 
         let unregisteredUser: UnregisteredUser = {
             uuid: uuid(),
-            email: result.value!.email,
-            bdeUUID: result.value!.bde,
-            firstname: result.value?.firstname,
-            lastname: result.value?.lastname,
+            email: result.value.email,
+            bdeUUID: result.value.bde,
+            firstname: result.value.firstname,
+            lastname: result.value.lastname,
         }
 
-        return this.usersService.create(unregisteredUser);
+        try {
+            await this.usersService.create(unregisteredUser);
+            return httpCode.created(unregisteredUser);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_ALREADY_EXISTS) {
+                return httpCode.badRequest('Email already used.');
+            }
+            return httpCode.internalServerError('Unable to create an user. Contact an administrator or try again later.');
+        }
     }
 
-    async registerUser(body: object | null): Promise<User> {
+    /**
+     * Handles a request meant to complete the registration of an user.
+     * This method always resolves.
+     * 
+     * @param body The request body
+     */
+    async finishUserRegistration(body: object | null): Promise<httpCode.Response> {
         let result = UsersController.USER_VALIDATOR.validate(body);
         if (!result.valid) {
-            return Promise.reject(result.error?.message);
+            return httpCode.badRequest(result.error.message);
         }
 
-        let unregisteredUser = await this.usersService.findUnregisteredByUUID(result.value!.uuid);
+        let unregisteredUser;
+        try {
+            unregisteredUser = await this.usersService.findUnregisteredByUUID(result.value.uuid);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.badRequest('Can\'t find an user with the given UUID.');
+            }
+            return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
+        }
 
         let user: User = {
             uuid: unregisteredUser.uuid,
@@ -62,7 +93,17 @@ export class UsersController {
             password: result.value!.password,
         }
 
-        return this.usersService.finishRegistration(user);
+        try {
+            await this.usersService.finishRegistration(user);
+            return httpCode.ok(hide(user, 'password'));
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.badRequest('No user with the given UUID exists.');
+            } else if (e.type === UsersErrorType.INVALID_SPECIALTY) {
+                return httpCode.badRequest('The specified specialty is not provided by your BDE');
+            }
+            return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
+        }
     }
 
 }

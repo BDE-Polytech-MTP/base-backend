@@ -6,7 +6,8 @@ import { User, UnregisteredUser } from "../models/user.model";
 export enum UsersErrorType {
     INTERNAL,
     USER_ALREADY_EXISTS,
-    USER_NOT_EXISTS
+    USER_NOT_EXISTS,
+    INVALID_SPECIALTY,
 }
 
 /**
@@ -30,6 +31,7 @@ export interface UsersService {
      * 
      * @return the given user if registration closure is a success
      * @throws USER_NOT_EXISTS error if no user with the given UUID exists
+     * @throws INVALID_SPECIALTY error if the given specialty isn't available in the attached BDE
      * @throws INTERNAL error in any other case
      * 
      * @param user The user to end registration of
