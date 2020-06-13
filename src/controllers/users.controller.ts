@@ -1,4 +1,4 @@
-import { UsersService, UsersErrorType } from "../services";
+import { UsersService, UsersErrorType, AuthenticationService } from "../services";
 import { UnregisteredUser, User } from "../models";
 import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
@@ -7,9 +7,11 @@ import { hide } from '../utils/hide';
 
 export class UsersController {
 
+    private static EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
     private static UNREGISTERED_USER_VALIDATOR = ValidatorBuilder
                                             .new<{ email: string, bde: string, firstname?: string, lastname?: string}>()
-                                            .requires("email").toBeString().matching(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/)
+                                            .requires("email").toBeString().matching(UsersController.EMAIL_REGEX)
                                             .requires("bde").toBeString().withMinLength(1)
                                             .optional("firstname").toBeString().withMinLength(2).withMaxLength(15)
                                             .optional("lastname").toBeString().withMinLength(2).withMaxLength(15)
@@ -24,7 +26,13 @@ export class UsersController {
                                             .requires("password").toBeString().withMinLength(10)
                                             .build();
 
-    constructor(private usersService: UsersService) {}
+    private static USER_CREDENTIALS_VALIDATOR = ValidatorBuilder
+                                                    .new<{ email: string, password: string}>()
+                                                    .requires('email').toBeString().matching(UsersController.EMAIL_REGEX)
+                                                    .requires('password').toBeString().withMinLength(1)
+                                                    .build();
+
+    constructor(private usersService: UsersService, private authService: AuthenticationService) {}
 
     /**
      * Handles a user creation request. If the creation is a success,
@@ -46,7 +54,7 @@ export class UsersController {
             bdeUUID: result.value.bde,
             firstname: result.value.firstname,
             lastname: result.value.lastname,
-        }
+        };
 
         try {
             await this.usersService.create(unregisteredUser);
@@ -102,6 +110,36 @@ export class UsersController {
                 return httpCode.badRequest('The specified specialty is not provided by your BDE');
             }
             return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
+        }
+    }
+
+    /**
+     * Handles an authentication request. It tries to authenticate an user from its email and its password.
+     * This method always resolves.
+     * 
+     * @param body The request body
+     */
+    async connectUser(body: object | null): Promise<httpCode.Response> {
+        let result = UsersController.USER_CREDENTIALS_VALIDATOR.validate(body);
+        if (!result.valid) {
+            return httpCode.badRequest(result.error.message);
+        }
+
+        let user: User;
+        try {
+            user = await this.authService.authenticate(result.value.email, result.value.password);
+        } catch (e) {
+            if (e.type === UsersErrorType.INTERNAL) {
+                return httpCode.internalServerError('Unable to authenticate an user. Contact an administrator or retry later.');
+            }
+            return httpCode.badRequest('Invalid credentials.');
+        }
+
+        try {
+            let token = await this.authService.generateToken(user);
+            return httpCode.ok({ token });
+        } catch (e) {
+            return httpCode.internalServerError('Unable to authenticate an user. Contact an administrator or retry later.');
         }
     }
 
