@@ -6,8 +6,9 @@ import * as httpCode from '../utils/http-code';
 
 export class BDEController {
 
-    private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string }>()
+    private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string, specialties: string[] }>()
                                     .requires("name").toBeString().withMinLength(1).withMaxLength(30)
+                                    .requires('specialties').toBeArray().withEachElement().toBeString().withMinLength(2)
                                     .build();
 
     constructor(private bdeService: BDEService) {}
@@ -22,12 +23,12 @@ export class BDEController {
         // TODO: Check authorization
         let result = BDEController.BDE_VALIDATOR.validate(requestBody);
         if (!result.valid) {
-            return httpCode.badRequest(result.error!.message);
+            return httpCode.badRequest(result.error.message);
         }
 
         let bdeObject: BDE = {
-            name: result.value!.name,
-            specialties: [],
+            name: result.value.name,
+            specialties: result.value.specialties,
             uuid: uuid(),
         };
 
