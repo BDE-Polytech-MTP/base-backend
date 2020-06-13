@@ -13,13 +13,11 @@ describe('Validator behavior', () => {
         it('should accept null body', () => {
             const result = validator.validate(null);
             expect(result.valid).to.be.true;
-            expect(result.value).to.be.null;
         });
 
         it('should accept empty body', () => {
             const result = validator.validate({});
             expect(result.valid).to.be.true;
-            expect(result.value).to.eql({});
         });
 
         it('should accept incomplete body', () => {
