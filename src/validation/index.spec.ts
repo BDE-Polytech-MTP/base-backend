@@ -315,6 +315,37 @@ describe('Validator behavior', () => {
 
     });
 
+    describe('DateTime requirement', () => {
+
+        it('should reject dates that are not provided as a string', () => {
+            const validator = ValidatorBuilder.new().requires('date').toBeDateTime().build();
+            let result = validator.validate({ date: 458 });
+            expect(result.valid).to.be.false;
+        });
+
+        it('should reject date with invalid format', () => {
+            const validator = ValidatorBuilder.new().requires('date').toBeDateTime().build();
+            let result = validator.validate({ date: 'anything' });
+            expect(result.valid).to.be.false;
+            
+            result = validator.validate({ date: '25:20:10' });
+            expect(result.valid).to.be.false;
+        });
+
+        it('should accept well-formed date', () => {
+            const validator = ValidatorBuilder.new().requires('date').toBeDateTime().build();
+            let result = validator.validate({ date: '23:42:10' });
+            expect(result.valid).to.be.true;
+
+            result = validator.validate({ date: '2019W213T09:24:15.123' });
+            expect(result.valid).to.be.true;
+
+            result = validator.validate({ date: '2020-06-14T09:33:15.123' });
+            expect(result.valid).to.be.true;
+        });
+
+    });
+
 });
 
 describe('Validator builder behavior', () => {

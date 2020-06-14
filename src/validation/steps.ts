@@ -62,6 +62,12 @@ export interface TypeStep<T> {
      * Indicates we expect the data to be an array.
      */
     toBeArray(): ArrayStep<T>;
+
+    /**
+     * Indicates we expect the data to be a datetime. (this checks the value is a string with a proper datetime format)
+     */
+    toBeDateTime(): BuildStep<T>;
+
 }
 
 export interface StringStep<T> extends BuildStep<T> {

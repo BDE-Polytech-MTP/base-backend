@@ -1,4 +1,5 @@
 import { BuildStep, IntegerStep, StringStep, TypeStep, ValidationResult, Validator, ArrayStep } from './steps';
+import { DateTime } from 'luxon';
 
 /**
  * Finds the value for the data with the given path in the given dictionnary or `undefined` if no data was
@@ -130,6 +131,11 @@ export class ValidatorBuilder<T> implements TypeStep<T>, BuildStep<T> {
         let provider = new ArrayValidator(this);
         this.config!.provider = provider;
         return provider;
+    }
+
+    toBeDateTime(): BuildStep<T> {
+        this.config!.provider = new DateTimeValidator();
+        return this;
     }
 
     requires(path: string): TypeStep<T> {
@@ -365,6 +371,11 @@ class ArrayValidator<T> implements ArrayStep<T>, ValidationProvider, TypeStep<T>
         return provider;
     }
 
+    toBeDateTime(): BuildStep<T> {
+        this.provider = new DateTimeValidator();
+        return this;
+    }
+
     build(): Validator<T> {
         return this.builder.build();
     }
@@ -395,6 +406,22 @@ class ArrayValidator<T> implements ArrayStep<T>, ValidationProvider, TypeStep<T>
 
             for (let i = 0; i < value.length; i++) {
                 elementsValidator(value[i], `${name}.${i}`);
+            }
+        };
+    }
+
+}
+
+class DateTimeValidator<T> implements ValidationProvider {
+    
+    provide(): ValueChecker {
+        return (value, name) => {
+            if (typeof value !== 'string') {
+                throw new Error(`Expected ${name} to be a string with a date format but got ${typeof value}.`);
+            }
+            let date = DateTime.fromISO(value);
+            if (!date.isValid) {
+                throw new Error(`Expected ${name} a valid date but it does not. Reason : ${date.invalidExplanation}`);
             }
         };
     }
