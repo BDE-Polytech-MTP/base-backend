@@ -23,6 +23,9 @@ export interface Event {
     /** UUID of the BDE which organize the event */
     bdeUUID: string;
 
+    /** Is this event a draft */
+    isDraft: boolean;
+
 }
 
 export enum EventState {
