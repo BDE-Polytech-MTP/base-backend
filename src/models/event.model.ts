@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { DateTime } from 'luxon';
 
 export interface Event {
 
@@ -9,13 +9,13 @@ export interface Event {
     name: string;
 
     /** Date at which users can begin to book (optional) */
-    bookingStart?: moment.Moment;
+    bookingStart?: DateTime;
 
     /** Date at which users must not book anymore (optional)  */
-    bookingEnd?: moment.Moment;
+    bookingEnd?: DateTime;
 
     /** Date at which event take place (optional) (indicative) */
-    eventDate?: moment.Moment;
+    eventDate?: DateTime;
 
     /** Event booking state */
     eventState: EventState;
