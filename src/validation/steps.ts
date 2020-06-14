@@ -64,9 +64,14 @@ export interface TypeStep<T> {
     toBeArray(): ArrayStep<T>;
 
     /**
-     * Indicates we expect the data to be a datetime. (this checks the value is a string with a proper datetime format)
+     * Indicates we expect the data to be a datetime. (this checks the value is a string with a proper ISO datetime format)
      */
     toBeDateTime(): BuildStep<T>;
+
+    /**
+     * Indicates we expect the data to be a boolean.
+     */
+    toBeBoolean(): BuildStep<T>;
 
 }
 

@@ -325,6 +325,7 @@ describe('Validator behavior', () => {
 
         it('should reject date with invalid format', () => {
             const validator = ValidatorBuilder.new().requires('date').toBeDateTime().build();
+            
             let result = validator.validate({ date: 'anything' });
             expect(result.valid).to.be.false;
             
@@ -334,6 +335,7 @@ describe('Validator behavior', () => {
 
         it('should accept well-formed date', () => {
             const validator = ValidatorBuilder.new().requires('date').toBeDateTime().build();
+            
             let result = validator.validate({ date: '23:42:10' });
             expect(result.valid).to.be.true;
 
@@ -341,6 +343,36 @@ describe('Validator behavior', () => {
             expect(result.valid).to.be.true;
 
             result = validator.validate({ date: '2020-06-14T09:33:15.123' });
+            expect(result.valid).to.be.true;
+        });
+
+    });
+
+    describe('Boolean requirement', () => {
+
+        it('should reject types other than boolean', () => {
+            const validator = ValidatorBuilder.new().requires('bool').toBeBoolean().build();
+            
+            let result = validator.validate({ bool: "a string" });
+            expect(result.valid).to.be.false;
+
+            result = validator.validate({ bool: 45 });
+            expect(result.valid).to.be.false;
+
+            result = validator.validate({ bool: {} });
+            expect(result.valid).to.be.false;
+
+            result = validator.validate({ bool: [] });
+            expect(result.valid).to.be.false;
+        });
+
+        it('should accept when data is a boolean', () => {
+            const validator = ValidatorBuilder.new().requires('bool').toBeBoolean().build();
+            
+            let result = validator.validate({ bool: true });
+            expect(result.valid).to.be.true;
+
+            result = validator.validate({ bool: false });
             expect(result.valid).to.be.true;
         });
 

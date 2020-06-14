@@ -138,6 +138,11 @@ export class ValidatorBuilder<T> implements TypeStep<T>, BuildStep<T> {
         return this;
     }
 
+    toBeBoolean(): BuildStep<T> {
+        this.config!.provider = new BooleanValidator();
+        return this;
+    }
+
     requires(path: string): TypeStep<T> {
         this.finishCurrent();
         this.config = {
@@ -376,6 +381,11 @@ class ArrayValidator<T> implements ArrayStep<T>, ValidationProvider, TypeStep<T>
         return this;
     }
 
+    toBeBoolean(): BuildStep<T> {
+        this.provider = new BooleanValidator();
+        return this;
+    }
+
     build(): Validator<T> {
         return this.builder.build();
     }
@@ -424,6 +434,19 @@ class DateTimeValidator<T> implements ValidationProvider {
                 throw new Error(`Expected ${name} a valid date but it does not. Reason : ${date.invalidExplanation}`);
             }
         };
+    }
+
+}
+
+class BooleanValidator<T> implements ValidationProvider {
+    
+
+    provide(): ValueChecker {
+        return (value, name) => {
+            if (typeof value !== 'boolean') {
+                throw new Error(`Expected ${name} to be boolean but got ${typeof value}.`);
+            }
+        }
     }
 
 }
