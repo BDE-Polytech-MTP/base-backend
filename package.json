@@ -7,7 +7,7 @@
   "scripts": {
     "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'",
     "build": "tsc",
-    "postinstall": "tsc"
+    "postinstall": "tsc --build tsconfig.install.json"
   },
   "author": "Florent HUGOUVIEUX",
   "license": "Apache-2.0",

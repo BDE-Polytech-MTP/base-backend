@@ -1,4 +1,5 @@
 {
+    "extends": "./tsconfig.install.json",
     "compilerOptions": {
       "module": "CommonJS",
       "target": "ES2019",
