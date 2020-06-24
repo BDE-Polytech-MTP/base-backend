@@ -80,6 +80,15 @@ export class AuthenticationService {
         })
     }
 
+    /**
+     * Hashes the given password.
+     * 
+     * @param rawPassword The plain password
+     */
+    hashPassword(rawPassword: string): string {
+        return this.hashStrategy.hash(rawPassword);
+    }
+
 }
 
 /**

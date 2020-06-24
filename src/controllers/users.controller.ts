@@ -102,8 +102,8 @@ export class UsersController {
             firstname: result.value.firstname,
             lastname: result.value.lastname,
             specialty: result.value.specialty,
-            password: result.value.password,
-        }
+            password: this.authService.hashPassword(result.value.password),
+        };
 
         try {
             await this.usersService.finishRegistration(user);
