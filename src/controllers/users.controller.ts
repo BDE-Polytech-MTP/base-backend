@@ -20,7 +20,7 @@ export class UsersController {
     private static USER_VALIDATOR = ValidatorBuilder
                                             .new<{uuid: string, firstname: string, lastname: string, specialty: string, password: string, bde: string}>()
                                             .requires("uuid").toBeString().withMinLength(1)
-                                            .requires("firsname").toBeString().withMinLength(2).withMaxLength(15)
+                                            .requires("firstname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("lastname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("specialty").toBeString().withMinLength(1)
                                             .requires("password").toBeString().withMinLength(10)
