@@ -1,4 +1,4 @@
-import { UsersService, UsersErrorType, AuthenticationService } from "../services";
+import { UsersService, UsersErrorType, AuthenticationService, MailingService } from "../services";
 import { UnregisteredUser, User } from "../models";
 import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
@@ -32,7 +32,11 @@ export class UsersController {
                                                     .requires('password').toBeString().withMinLength(1)
                                                     .build();
 
-    constructor(private usersService: UsersService, private authService: AuthenticationService) {}
+    constructor(
+        private usersService: UsersService, 
+        private authService: AuthenticationService,
+        private mailingService: MailingService
+    ) {}
 
     /**
      * Handles a user creation request. If the creation is a success,
@@ -58,6 +62,7 @@ export class UsersController {
 
         try {
             await this.usersService.create(unregisteredUser);
+            await this.mailingService.sendRegistrationMail(unregisteredUser);
             return httpCode.created(unregisteredUser);
         } catch (e) {
             if (e.type === UsersErrorType.USER_ALREADY_EXISTS) {
@@ -140,6 +145,29 @@ export class UsersController {
             return httpCode.ok({ token });
         } catch (e) {
             return httpCode.internalServerError('Unable to authenticate an user. Contact an administrator or retry later.');
+        }
+    }
+
+    /**
+     * Handles an unregistered user data fetching request for the user with the given UUID.
+     * This method always resolves.
+     * 
+     * @param uuid The user UUID
+     */
+    async getUnregisteredUser(uuid: string): Promise<httpCode.Response> {
+        if (uuid.length === 0) {
+            return httpCode.notFound('Unexpected empty user UUID.');
+        }
+
+        try {
+            const user = await this.usersService.findUnregisteredByUUID(uuid);
+            return httpCode.ok(user);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.notFound('No user with this UUID exists.');
+            } else {
+                return httpCode.internalServerError('Unable to access this resources. Contact an adminstrator or retry later.');
+            }
         }
     }
 

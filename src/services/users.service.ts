@@ -7,6 +7,7 @@ export enum UsersErrorType {
     INTERNAL,
     USER_ALREADY_EXISTS,
     USER_NOT_EXISTS,
+    BDE_NOT_EXISTS,
     INVALID_SPECIALTY,
 }
 
