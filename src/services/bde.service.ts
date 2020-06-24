@@ -37,6 +37,25 @@ export interface BDEService {
      */
     delete(uuid: string): Promise<BDE>;
 
+    /**
+     * List all known BDEs.
+     * 
+     * @return an array of all known BDEs.
+     * @throws INTERNAL error if a problem occured.
+     */
+    listAll(): Promise<BDE[]>;
+
+    /**
+     * Finds the BDE with the given UUID.
+     * 
+     * @returns the bde with the given UUID.
+     * @throws BDE_NOT_EXISTS error if no BDE with the given UUID exists.
+     * @throws INTERNAL error in any other case.
+     * 
+     * @param uuid The BDE UUID
+     */
+    findByUUID(uuid: string): Promise<BDE>;
+
 }
 
 /**

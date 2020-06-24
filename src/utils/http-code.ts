@@ -7,6 +7,7 @@ enum HttpCode {
     BadRequest = 400,
     Unauthorized = 401,
     Forbidden = 403,
+    NotFound = 404,
     InternalServerError = 500,
 };
 
@@ -84,4 +85,13 @@ export function forbidden(data: string | object): Response {
  */
 export function internalServerError(data: string | object): Response {
     return { code: HttpCode.InternalServerError, body: normalize(data)};
+}
+
+/**
+ * Creates a 'not found' http response with the given data as body.
+ * 
+ * @param data The message describing the encountered error
+ */
+export function notFound(data: string | object): Response {
+    return { code: HttpCode.NotFound, body: normalize(data) };
 }

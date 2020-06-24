@@ -49,4 +49,40 @@ export class BDEController {
         }
     }
 
+    /**
+     * Handles a request to aims to list all known BDEs.
+     * This method always resolves.
+     */
+    async listAll(): Promise<httpCode.Response> {
+        try {
+            let bdes = await this.bdeService.listAll();
+            return httpCode.ok(bdes);
+        } catch (e) {
+            return httpCode.internalServerError('Unable to fetch all BDEs. Contact an administrator or retry later.');
+        }
+    }
+
+    /**
+     * Handles a BDE data fetching request on the BDE with the given UUID.
+     * This method always resolves.
+     * 
+     * @param uuid The BDE UUID
+     */
+    async getBDE(uuid: string): Promise<httpCode.Response> {
+        if (uuid.length === 0) {
+            return httpCode.notFound('Unexpected empty uuid.');
+        }
+
+        try {
+            const bde = await this.bdeService.findByUUID(uuid);
+            return httpCode.ok(bde);
+        } catch (e) {
+            if (e.type === BDEErrorType.BDE_NOT_EXISTS) {
+                return httpCode.notFound('No BDE with this UUID exists.');
+            } else {
+                return httpCode.internalServerError('Unable to fetch BDE with the given UUID. Contact an administrator or retry later.');
+            }
+        }
+    }
+
 }
