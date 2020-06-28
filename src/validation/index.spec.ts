@@ -1,5 +1,7 @@
 import {expect} from 'chai';
 import {ValidatorBuilder} from './index';
+import {mock, verify, instance, when} from 'ts-mockito';
+import { Validator } from './steps';
 
 describe('Validator behavior', () => {
 
@@ -217,8 +219,18 @@ describe('Validator behavior', () => {
 
         it('should reject if parameter is not an array', () => {
             const validator = ValidatorBuilder.new().requires('prices').toBeArray().withEachElement().toBeInteger().build();
+            
             let result = validator.validate({ prices: 5 });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Fails when value is an integer').to.be.false;
+
+            result = validator.validate({ prices: {} });
+            expect(result.valid, 'Fails when value is an object').to.be.false;
+
+            result = validator.validate({ prices: true });
+            expect(result.valid, 'Fails when value is a boolean').to.be.false;
+
+            result = validator.validate({ prices: '' });
+            expect(result.valid, 'Fails when value is a string').to.be.false;
         });
 
         it('should accept if parameter is an array', () => {
@@ -231,13 +243,13 @@ describe('Validator behavior', () => {
             const validator = ValidatorBuilder.new().requires('prices').toBeArray().withEachElement().toBeInteger().withMinValue(10).build();
 
             let result = validator.validate({ prices: [10, 20, "Not an integer" ]});
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Does not fail when array contains a string').to.be.false;
 
             result = validator.validate({ prices: [10, 20, 5] });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Does no fail when array contains a value lower than min value').to.be.false;
 
             result = validator.validate({ prices: [10, 50, 82] });
-            expect(result.valid).to.be.true;
+            expect(result.valid, 'Fails when array is valid').to.be.true;
         });
 
         it('should reject if array length is lower than specified minimum length', () => {
@@ -268,10 +280,10 @@ describe('Validator behavior', () => {
             const validator = ValidatorBuilder.new().requires('prices').toBeArray().withMinLength(4).withMaxLength(9).withEachElement().toBeInteger().build();
             
             let result = validator.validate({ prices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Does no fail when array length is greater than specified max length').to.be.false;
 
             result = validator.validate({ prices: [1, 2, 3] });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Does no fail when array length is lower than specified min length').to.be.false;
         });
 
         it('should accept if array length is in specified bounds', () => {
@@ -311,6 +323,47 @@ describe('Validator behavior', () => {
                 [5, 8, -8]
             ] });
             expect(result.valid).to.be.false;
+        });
+
+        it('should reject when array elements are required to be objects but are not', () => {
+            const validator = ValidatorBuilder.new().requires('arr').toBeArray().withEachElementValidating(ValidatorBuilder.new().build()).build();
+            
+            let result = validator.validate({ arr: [ 1 ]});
+            expect(result.valid, 'Fails when element is an integer').to.be.false;
+
+            result = validator.validate({ arr: [ true ]});
+            expect(result.valid, 'Fails when element is a boolean').to.be.false;
+
+            result = validator.validate({ arr: [ '' ]});
+            expect(result.valid, 'Fails when element is a string').to.be.false;
+
+            result = validator.validate({ arr: [ [] ]});
+            expect(result.valid, 'Fails when element is an array').to.be.false;
+        });
+
+        it('should accept when array elements are objects', () => {
+            const validator = ValidatorBuilder.new().requires('arr').toBeArray().withEachElementValidating(
+                ValidatorBuilder.new().requires('a').toBeInteger().withMinValue(5).build()
+            ).build();
+            
+            let result = validator.validate({ arr: [ { a: 10 }, { a: 50 } ]});
+            expect(result.valid).to.be.true;
+
+            result = validator.validate({ arr: [ { a: 10 }, { a: 4 } ]});
+            expect(result.valid).to.be.false;
+
+            result = validator.validate({ arr: [ { a: 4 }, { a: 10 } ]});
+            expect(result.valid).to.be.false;
+        });
+
+        it('should apply given validator to each array element', () => {
+            const elementValidator = mock<Validator<any>>();
+            when(elementValidator.validate).thenReturn((value) => ({ valid: true, value }));
+            const validator = ValidatorBuilder.new().requires('arr').toBeArray().withEachElementValidating(instance(elementValidator)).build();
+            
+            const result = validator.validate({ arr: [ {}, { a: 5}, { b: 'dffd' } ]});
+            verify(elementValidator.validate).thrice();
+            expect(result.valid).to.be.true;
         });
 
     });
@@ -354,16 +407,16 @@ describe('Validator behavior', () => {
             const validator = ValidatorBuilder.new().requires('bool').toBeBoolean().build();
             
             let result = validator.validate({ bool: "a string" });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Fails when value is a string').to.be.false;
 
             result = validator.validate({ bool: 45 });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Fails when value an integer').to.be.false;
 
             result = validator.validate({ bool: {} });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Fails when value is an object').to.be.false;
 
             result = validator.validate({ bool: [] });
-            expect(result.valid).to.be.false;
+            expect(result.valid, 'Fails when value is an array').to.be.false;
         });
 
         it('should accept when data is a boolean', () => {

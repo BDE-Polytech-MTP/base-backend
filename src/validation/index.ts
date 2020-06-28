@@ -358,6 +358,26 @@ class ArrayValidator<T> implements ArrayStep<T>, ValidationProvider, TypeStep<T>
         return this;
     }
 
+    withEachElementValidating(validator: Validator<any>): BuildStep<T> {
+        this.provider = {
+            provide: () => (value, name) => {
+                if (value instanceof Array) {
+                    throw new Error(`Expected ${name} to be an object, but got an array.`);
+                }
+                    
+                if (typeof value !== 'object') {
+                    throw new Error(`Expected ${name} to be an object but got : ${typeof value}`);
+                }
+
+                const result = validator.validate(value);
+                if (!result.valid) {
+                    throw new Error(`Error caught while validating ${name}. ${result.error.message}`);
+                }
+            }
+        };
+        return this.builder;
+    }
+
     toBeString(): StringStep<T> {
         let provider = new StringValidator(this);
         this.provider = provider;

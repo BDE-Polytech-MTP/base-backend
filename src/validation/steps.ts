@@ -118,10 +118,31 @@ export interface IntegerStep<T> extends BuildStep<T> {
 
 export interface ArrayStep<T> {
 
+    /**
+     * Indicates the minimum allowed length (inclusive) for the array.
+     * 
+     * @param length The minimum allowed array length
+     */
     withMinLength(length: number): ArrayStep<T>;
 
+    /**
+     * Indicates the maximum allowed length (inclusive) for the array.
+     * 
+     * @param length The maximum allowed array length
+     */
     withMaxLength(length: number): ArrayStep<T>;
 
+    /**
+     * Allows to indicate which validation rules must be applied to each element.
+     */
     withEachElement(): TypeStep<T>;
+
+    /**
+     * Indicates which validator to apply to and that must be validateed by each element of the array.
+     * It also verifies that each array element is an object.
+     * 
+     * @param validator The validator that must be applied to and validated by each array element
+     */
+    withEachElementValidating(validator: Validator<any>): BuildStep<T>;
 
 }
