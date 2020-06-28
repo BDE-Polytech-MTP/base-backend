@@ -6,10 +6,15 @@ import * as httpCode from '../utils/http-code';
 
 export class BDEController {
 
-    private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string, specialties: string[] }>()
+    private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string, specialties: { name: string, minYear: number, maxYear: number}[] }>()
                                     .requires("name").toBeString().withMinLength(1).withMaxLength(30)
-                                    .requires('specialties').toBeArray().withEachElement().toBeString().withMinLength(2)
-                                    .build();
+                                    .requires('specialties').toBeArray().withEachElementValidating(
+                                        ValidatorBuilder.new()
+                                            .requires('name').toBeString().withMinLength(2)
+                                            .requires('minYear').toBeInteger().withMinValue(1).withMaxValue(5)
+                                            .requires('maxYear').toBeInteger().withMinValue(1).withMaxValue(5)
+                                            .build()
+                                    ).build();
 
     constructor(private bdeService: BDEService) {}
 
@@ -28,9 +33,13 @@ export class BDEController {
 
         let bdeObject: BDE = {
             name: result.value.name,
-            specialties: result.value.specialties,
+            specialties: result.value.specialties.map((spe) => ({ name: spe.name, minYear: spe.minYear, maxYear: spe.maxYear })),
             uuid: uuid(),
         };
+
+        if (bdeObject.specialties.some((spe) => spe.minYear > spe.maxYear)) {
+            return httpCode.badRequest('Expected specialty minYear to be lower than or equal to specialty maxYear');
+        }
 
         try {
             const bde = await this.bdeService.create(bdeObject);
