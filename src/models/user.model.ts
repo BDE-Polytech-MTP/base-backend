@@ -21,8 +21,11 @@ export interface User {
     /** UUID of the BDE the user belongs to */
     bdeUUID: string;
 
-    /** User specialty */
-    specialty: string;
+    /** User specialty name */
+    specialtyName: string;
+
+    /** User specialty year */
+    specialtyYear: number;
 
 }
 

@@ -18,11 +18,20 @@ export class UsersController {
                                             .build();
 
     private static USER_VALIDATOR = ValidatorBuilder
-                                            .new<{uuid: string, firstname: string, lastname: string, specialty: string, password: string, bde: string}>()
+                                            .new<{
+                                                uuid: string, 
+                                                firstname: string, 
+                                                lastname: string, 
+                                                specialty: string, 
+                                                password: string,
+                                                year: number,
+                                                bde: string
+                                            }>()
                                             .requires("uuid").toBeString().withMinLength(1)
                                             .requires("firstname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("lastname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("specialty").toBeString().withMinLength(1)
+                                            .requires("year").toBeInteger().withMinValue(1).withMaxValue(5)
                                             .requires("password").toBeString().withMinLength(10)
                                             .build();
 
@@ -101,7 +110,8 @@ export class UsersController {
 
             firstname: result.value.firstname,
             lastname: result.value.lastname,
-            specialty: result.value.specialty,
+            specialtyName: result.value.specialty,
+            specialtyYear: result.value.year,
             password: this.authService.hashPassword(result.value.password),
         };
 
