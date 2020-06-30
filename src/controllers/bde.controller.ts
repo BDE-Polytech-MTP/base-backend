@@ -8,7 +8,7 @@ export class BDEController {
 
     private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string, specialties: { name: string, minYear: number, maxYear: number}[] }>()
                                     .requires("name").toBeString().withMinLength(1).withMaxLength(30)
-                                    .requires('specialties').toBeArray().withEachElementValidating(
+                                    .requires('specialties').toBeArray().withMinLength(1).withEachElementValidating(
                                         ValidatorBuilder.new()
                                             .requires('name').toBeString().withMinLength(2)
                                             .requires('minYear').toBeInteger().withMinValue(1).withMaxValue(5)

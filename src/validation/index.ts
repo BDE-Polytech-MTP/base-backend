@@ -427,11 +427,11 @@ class ArrayValidator<T> implements ArrayStep<T>, ValidationProvider, TypeStep<T>
             }
 
             if (this.minLength !== undefined && value.length < this.minLength) {
-                throw new Error(`Expected array length to be greater than ${this.minLength} but got ${value.length}`);
+                throw new Error(`Expected array length of property ${name} to be greater than ${this.minLength} but got ${value.length}`);
             }
 
             if (this.maxLength !== undefined && value.length > this.maxLength) {
-                throw new Error(`Expected array length to be lower than ${this.maxLength} but got ${value.length}`);
+                throw new Error(`Expected array length of property ${name} to be lower than ${this.maxLength} but got ${value.length}`);
             }
 
             for (let i = 0; i < value.length; i++) {

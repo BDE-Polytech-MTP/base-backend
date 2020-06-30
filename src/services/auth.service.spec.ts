@@ -20,7 +20,8 @@ describe('Authentication service', () => {
         bdeUUID: 'the-bde-uuid',
         firstname: 'the-firstname',
         lastname: 'the-lastname',
-        specialty: 'the-specialty',
+        specialtyName: 'the-specialty',
+        specialtyYear: 1,
         uuid: 'the-uuid',
     };
 

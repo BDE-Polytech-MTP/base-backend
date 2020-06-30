@@ -1,7 +1,7 @@
 /**
  * Http codes names mapped to their value.
  */
-enum HttpCode {
+export enum HttpCode {
     Ok = 200,
     Created = 201,
     BadRequest = 400,
@@ -16,7 +16,7 @@ enum HttpCode {
  */
 export interface Response {
     code: HttpCode,
-    body: object,
+    body: {[key: string]: any},
 };
 
 /**
