@@ -13,6 +13,7 @@ const { expect } = chai;
 describe('BDE controller', () => {
 
     const serviceMock = mock<BDEService>();
+    const controller = new BDEController(instance(serviceMock));
 
     beforeEach(() => {
         reset(serviceMock);
@@ -21,8 +22,6 @@ describe('BDE controller', () => {
     describe('createBde', () => {
 
         it('should return "bad request" http code when empty BDE name is given', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: '',
                 specialties: [{ name: 'IG', minYear: 1, maxYear: 5 }]
@@ -35,8 +34,6 @@ describe('BDE controller', () => {
         });
 
         it('should return "bad request" http code when empty specialty array is given', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: 'Montpellier',
                 specialties: []
@@ -49,8 +46,6 @@ describe('BDE controller', () => {
         });
 
         it('should return "bad request" http code when empty name is given for a specialty', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: '', minYear: 1, maxYear: 5}],
@@ -63,8 +58,6 @@ describe('BDE controller', () => {
         });
 
         it('should return "bad request" http code when a value lower than or equal to 0 is given for a specialty min year', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 0, maxYear: 5}],
@@ -78,8 +71,6 @@ describe('BDE controller', () => {
 
 
         it('should return "bad request" http code when a value lower than or equal to 0 is given for a specialty min year', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 1, maxYear: 6}],
@@ -92,8 +83,6 @@ describe('BDE controller', () => {
         });
 
         it('should return "bad request" http code when minYear is greater than maxYear for a specialty', async () => {
-            const controller = new BDEController(instance(serviceMock));
-
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 4, maxYear: 3}],
@@ -117,7 +106,6 @@ describe('BDE controller', () => {
 
         it('should return an "internal server error" http code when bde service rejects with an INTERNAL error', async () => {
             when(serviceMock.create(anything())).thenReject(new BDEServiceError('', BDEErrorType.INTERNAL));
-            const controller = new BDEController(instance(serviceMock));
 
             const result = await controller.create(validBody);
             verify(serviceMock.create(anything())).once();
@@ -126,7 +114,6 @@ describe('BDE controller', () => {
 
         it('should return a "bad request" http code when bde service rejects with a BDE_ALREADY_EXISTS error', async () => {
             when(serviceMock.create(anything())).thenReject(new BDEServiceError('', BDEErrorType.BDE_ALREADY_EXISTS));
-            const controller = new BDEController(instance(serviceMock));
 
             const result = await controller.create(validBody);
             verify(serviceMock.create(anything())).once();
@@ -135,11 +122,68 @@ describe('BDE controller', () => {
 
         it('should return a "created" http code when bde service resolves', async () => {
             when(serviceMock.create(anything())).thenResolve({ ... validBody, uuid: '' });
-            const controller = new BDEController(instance(serviceMock));
 
             const result = await controller.create(validBody);
             verify(serviceMock.create(anything())).once();
             expect(result.code).to.eq(HttpCode.Created);
+        });
+
+    });
+
+    describe('listAll', () => {
+
+        it('should return "internal server error" http code if bde service rejects with INTERNAL error', async () => {
+            when(serviceMock.listAll()).thenReject(new BDEServiceError('', BDEErrorType.INTERNAL));
+
+            const result = await controller.listAll();
+            verify(serviceMock.listAll()).once();
+            expect(result.code).to.eq(HttpCode.InternalServerError);
+            expect(result.body).to.have.property('message');
+        });
+
+        it('should return "ok" http code if the bde service resolves', async () => {
+            when(serviceMock.listAll()).thenResolve([]);
+
+            const result = await controller.listAll();
+            verify(serviceMock.listAll()).once();
+            expect(result.code).to.eq(HttpCode.Ok);
+        });
+
+    });
+
+    describe('getBDE', () => {
+
+        it('should return "internal server error" http code if bde service rejects with INTERNAL error', async () => {
+            when(serviceMock.findByUUID('the-uuid')).thenReject(new BDEServiceError('', BDEErrorType.INTERNAL));
+
+            const result = await controller.getBDE('the-uuid');
+            verify(serviceMock.findByUUID('the-uuid')).once();
+            expect(result.code).to.eq(HttpCode.InternalServerError);
+            expect(result.body).to.have.property('message');
+        });
+
+        it('should return "bad request" http code if the given uuid is empty', async () => {
+            const result = await controller.getBDE('');
+            expect(result.code).to.eq(HttpCode.BadRequest);
+            expect(result.body).to.have.property('message');
+            expect(result.body['message']).to.have.string('uuid');
+        });
+
+        it('should return "not found" http code if the bde service rejects with BDE_NOT_EXISTS error', async () => {
+            when(serviceMock.findByUUID('the-uuid')).thenReject(new BDEServiceError('', BDEErrorType.BDE_NOT_EXISTS));
+
+            const result = await controller.getBDE('the-uuid');
+            verify(serviceMock.findByUUID('the-uuid')).once();
+            expect(result.code).to.eq(HttpCode.NotFound);
+            expect(result.body).to.have.property('message');
+        });
+
+        it('should return "ok" http code if the bde service resolves', async () => {
+            when(serviceMock.findByUUID('the-uuid')).thenResolve({ name: 'Montpellier', specialties: [], uuid: 'the-uuid' });
+
+            const result = await controller.getBDE('the-uuid');
+            verify(serviceMock.findByUUID('the-uuid')).once();
+            expect(result.code).to.eq(HttpCode.Ok); 
         });
 
     });

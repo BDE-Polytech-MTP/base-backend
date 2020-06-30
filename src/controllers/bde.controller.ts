@@ -79,7 +79,7 @@ export class BDEController {
      */
     async getBDE(uuid: string): Promise<httpCode.Response> {
         if (uuid.length === 0) {
-            return httpCode.notFound('Unexpected empty uuid.');
+            return httpCode.badRequest('Unexpected empty uuid.');
         }
 
         try {
