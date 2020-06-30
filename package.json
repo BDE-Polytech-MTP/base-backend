@@ -7,7 +7,8 @@
   "scripts": {
     "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'",
     "build": "tsc",
-    "postinstall": "tsc --build tsconfig.install.json"
+    "postinstall": "tsc --build tsconfig.install.json",
+    "coverage": "nyc npm run test"
   },
   "author": "Florent HUGOUVIEUX",
   "license": "Apache-2.0",
@@ -25,6 +26,7 @@
     "chai-as-promised": "^7.1.1",
     "eslint": "^7.0.0",
     "mocha": "^7.1.2",
+    "nyc": "^15.1.0",
     "ts-mockito": "^2.6.1",
     "ts-node": "^8.10.1",
     "typescript": "^3.2.4"
