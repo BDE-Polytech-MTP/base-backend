@@ -4,7 +4,6 @@ import chaiAsPromised from 'chai-as-promised';
 import {mock, instance, verify, when, anything, reset} from 'ts-mockito';
 import {HttpCode} from '../utils/http-code';
 import { BDEService, BDEErrorType, BDEServiceError } from '../services';
-import { BDE } from '../models';
 
 chai.use(chaiAsPromised);
 
