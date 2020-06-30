@@ -70,7 +70,7 @@ export class UsersController {
         };
 
         try {
-            await this.usersService.create(unregisteredUser);
+            unregisteredUser = await this.usersService.create(unregisteredUser);
             await this.mailingService.sendRegistrationMail(unregisteredUser);
             return httpCode.created(unregisteredUser);
         } catch (e) {
