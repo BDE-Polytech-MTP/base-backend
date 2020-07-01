@@ -25,7 +25,6 @@ export class UsersController {
                                                 specialty: string, 
                                                 password: string,
                                                 year: number,
-                                                bde: string
                                             }>()
                                             .requires("uuid").toBeString().withMinLength(1)
                                             .requires("firstname").toBeString().withMinLength(2).withMaxLength(15)
@@ -116,7 +115,7 @@ export class UsersController {
         };
 
         try {
-            await this.usersService.finishRegistration(user);
+            user = await this.usersService.finishRegistration(user);
             return httpCode.ok(hide(user, 'password'));
         } catch (e) {
             if (e.type === UsersErrorType.USER_NOT_EXISTS) {
@@ -166,7 +165,7 @@ export class UsersController {
      */
     async getUnregisteredUser(uuid: string): Promise<httpCode.Response> {
         if (uuid.length === 0) {
-            return httpCode.notFound('Unexpected empty user UUID.');
+            return httpCode.badRequest('Unexpected empty user UUID.');
         }
 
         try {
