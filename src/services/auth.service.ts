@@ -1,6 +1,7 @@
 import { UsersService } from "./users.service";
-import { User } from "../models";
+import { User, Permission } from "../models";
 import { HashStrategy } from "../utils/hash";
+import { permissionsFromStrings } from '../utils/permissions';
 import jwt from 'jsonwebtoken';
 
 /**
@@ -44,12 +45,13 @@ export class AuthenticationService {
      */
     generateToken(user: User): Promise<string> {
         return new Promise((resolve, reject) => {
-            const claims: JWTClaims = {
+            const claims: SerializedJWTClaims = {
                 uuid: user.uuid,
                 bde_uuid: user.bdeUUID,
                 firstname: user.firstname,
                 lastname: user.lastname,
-            }
+                permissions: user.permissions.map(p => p.name),
+            };
 
             jwt.sign(claims, JWT_SECRET, { algorithm: JWT_ALGORITHM }, (err, token) => {
                 if (err) {
@@ -74,7 +76,14 @@ export class AuthenticationService {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(<JWTClaims>decoded); // Note: This is not 100% safe
+                    const claims = <SerializedJWTClaims>decoded; // Note: This is not 100% safe
+                    resolve({
+                        bdeUUID: claims.bde_uuid, 
+                        permissions: permissionsFromStrings(claims.permissions),
+                        firstname: claims.firstname,
+                        lastname: claims.lastname,
+                        uuid: claims.uuid,
+                     });
                 }
             })
         })
@@ -96,7 +105,16 @@ export class AuthenticationService {
  */
 export interface JWTClaims {
     uuid: string,
-    bde_uuid: string,
+    bdeUUID: string,
     firstname: string,
     lastname: string;
+    permissions: Permission[],
+}
+
+interface SerializedJWTClaims {
+    uuid: string,
+    bde_uuid: string,
+    firstname: string,
+    lastname: string,
+    permissions: string[],
 }

@@ -1,9 +1,10 @@
-import { UsersService, UsersErrorType, AuthenticationService, MailingService } from "../services";
+import { UsersService, UsersErrorType, AuthenticationService, MailingService, JWTClaims } from "../services";
 import { UnregisteredUser, User } from "../models";
 import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
 import * as httpCode from '../utils/http-code';
 import { hide } from '../utils/hide';
+import { canAddUser } from '../utils/permissions';
 
 export class UsersController {
 
@@ -52,12 +53,32 @@ export class UsersController {
      * This method always resolves.
      * 
      * @param body The request body
+     * @param userToken The user's authentication token
      */
-    async create(body: object | null): Promise<httpCode.Response> {
-        // TODO: Check authorization
+    async create(body: object | null, userToken?: string): Promise<httpCode.Response> {
+        
+        /* No token were given, we return an unauthorized error */
+        if (!userToken) {
+            return httpCode.unauthorized('You must be connected.');
+        }
+
+        /* Trying to authenticate user from the given token */
+        let claims: JWTClaims;
+        try {
+            claims = await this.authService.verifyToken(userToken);
+        } catch (_) {
+            return httpCode.unauthorized('The given token is invalid.');
+        }
+
+        /* Validating body request */
         let result = UsersController.UNREGISTERED_USER_VALIDATOR.validate(body);
         if (!result.valid) {
             return httpCode.badRequest(result.error.message);
+        }
+
+        /* Checking user permisson */
+        if (!canAddUser(claims, result.value.bde)) {
+            return httpCode.forbidden('You don\'t have the permission to perform this action.');
         }
 
         let unregisteredUser: UnregisteredUser = {
@@ -66,6 +87,7 @@ export class UsersController {
             bdeUUID: result.value.bde,
             firstname: result.value.firstname,
             lastname: result.value.lastname,
+            permissions: [],
         };
 
         try {
@@ -106,6 +128,7 @@ export class UsersController {
             uuid: unregisteredUser.uuid,
             bdeUUID: unregisteredUser.bdeUUID,
             email: unregisteredUser.email,
+            permissions: unregisteredUser.permissions,
 
             firstname: result.value.firstname,
             lastname: result.value.lastname,

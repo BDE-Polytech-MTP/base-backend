@@ -1,10 +1,10 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {mock, instance, verify, when, anything, reset, deepEqual, resetCalls} from 'ts-mockito';
-import { UsersService, AuthenticationService, MailingService, UsersServiceError, UsersErrorType } from '../services';
+import { mock, instance, verify, when, anything, reset, deepEqual, resetCalls } from 'ts-mockito';
+import { UsersService, AuthenticationService, MailingService, UsersServiceError, UsersErrorType, JWTClaims } from '../services';
 import { UsersController } from '../controllers';
 import { HttpCode } from '../utils/http-code';
-import { User, UnregisteredUser } from '../models';
+import { User, UnregisteredUser, Permissions } from '../models';
 
 chai.use(chaiAsPromised);
 
@@ -17,23 +17,30 @@ describe('Users controller', () => {
     const mailingServiceMock = mock<MailingService>();
     const controller = new UsersController(instance(usersServiceMock), instance(authServiceMock), instance(mailingServiceMock));
 
-    before(() => {
-        when(authServiceMock.hashPassword('thepassword')).thenReturn('thepassword');
-    });
-
     beforeEach(() => {
         reset(usersServiceMock);
         reset(mailingServiceMock);
-        resetCalls(authServiceMock);
+        reset(authServiceMock);
+        when(authServiceMock.hashPassword('thepassword')).thenReturn('thepassword');
     });
 
     describe('create', () => {
 
+        const validClaims: JWTClaims = {
+            bdeUUID: 'bde-uuid',
+            firstname: 'Firstname',
+            lastname: 'Lastname',
+            permissions: [Permissions.ADD_USER],
+            uuid: 'the-uuid',
+        };
+
         it('should return "bad request" http code when given email is malformed', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
+
             const result = await controller.create({
                 email: 'invalid-email@',
                 bde: 'bde-uuid',
-            });
+            }, 'the-token');
 
             expect(result.code).to.eq(HttpCode.BadRequest);
             expect(result.body).to.have.property('message');
@@ -41,10 +48,12 @@ describe('Users controller', () => {
         });
 
         it('should return "bad request" http code when given bde uuid is empty', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
+
             const result = await controller.create({
                 email: 'valid-email@provider.dev',
                 bde: '',
-            });
+            }, 'the-token');
 
             expect(result.code).to.eq(HttpCode.BadRequest);
             expect(result.body).to.have.property('message');
@@ -52,11 +61,13 @@ describe('Users controller', () => {
         });
 
         it('should return "bad request" http code when given fistname is too short', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
+
             const result = await controller.create({
                 email: 'valid-email@provider.dev',
                 bde: 'the-uuid',
                 firstname: 'a'
-            });
+            }, 'the-token');
 
             expect(result.code).to.eq(HttpCode.BadRequest);
             expect(result.body).to.have.property('message');
@@ -64,11 +75,13 @@ describe('Users controller', () => {
         });
 
         it('should return "bad request" http code when given lastname is too short', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
+
             const result = await controller.create({
                 email: 'valid-email@provider.dev',
                 bde: 'the-uuid',
                 lastname: 'a'
-            });
+            }, 'the-token');
 
             expect(result.code).to.eq(HttpCode.BadRequest);
             expect(result.body).to.have.property('message');
@@ -81,38 +94,42 @@ describe('Users controller', () => {
         };
 
         it('should return "bad request" http code when users service rejects with USER_ALREADY_EXISTS error', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenReject(new UsersServiceError('', UsersErrorType.USER_ALREADY_EXISTS));
 
-            const result = await controller.create(validBody);
+            const result = await controller.create(validBody, 'the-token');
             verify(usersServiceMock.create(anything())).once();
             expect(result.code).to.eq(HttpCode.BadRequest);
         });
 
         it('should return "internal server error" http code when users service rejects with INTERNAL error', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenReject(new UsersServiceError('', UsersErrorType.INTERNAL));
 
-            const result = await controller.create(validBody);
+            const result = await controller.create(validBody, 'the-token');
             verify(usersServiceMock.create(anything())).once();
             expect(result.code).to.eq(HttpCode.InternalServerError);
         });
 
         it('should return "internal server error" http code when users service resolves and mailing service rejects with INTERNAL error', async () => {
-            const user = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email };
+            const user: UnregisteredUser = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenReject(new Error(''));
 
-            const result = await controller.create(validBody);
+            const result = await controller.create(validBody, 'the-token');
             verify(usersServiceMock.create(anything())).once();
             verify(mailingServiceMock.sendRegistrationMail(user)).once();
             expect(result.code).to.eq(HttpCode.InternalServerError);
         });
 
         it('should return "created" http code when users service and mailing service resolves', async () => {
-            const user = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email };
+            const user: UnregisteredUser = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenResolve();
 
-            const result = await controller.create(validBody);
+            const result = await controller.create(validBody, 'the-token');
             verify(usersServiceMock.create(anything())).once();
             verify(mailingServiceMock.sendRegistrationMail(user)).once();
             expect(result.code).to.eq(HttpCode.Created);
@@ -239,7 +256,8 @@ describe('Users controller', () => {
         const unregisteredUser: UnregisteredUser = {
             uuid: validBody.uuid,
             bdeUUID: 'bde-uuid',
-            email: 'valid-email@provider.tld'
+            email: 'valid-email@provider.tld',
+            permissions: [],
         }
 
         const user: User = {
@@ -365,7 +383,7 @@ describe('Users controller', () => {
         });
 
         it('should return "internal server error" http code when token generation rejects.', async () => {
-            const user = {
+            const user: User = {
                 uuid: 'the-uuid',
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
@@ -374,6 +392,7 @@ describe('Users controller', () => {
                 password: 'thepassword',
                 specialtyName: 'IG',
                 specialtyYear: 2,
+                permissions: [],
             };
             when(authServiceMock.authenticate('valid-email@provider.tld', 'thepassword')).thenResolve(user);
             when(authServiceMock.generateToken(deepEqual(user))).thenReject(new Error(''));
@@ -389,7 +408,7 @@ describe('Users controller', () => {
         });
 
         it('should return "ok" http code when token generation resolves.', async () => {
-            const user = {
+            const user: User = {
                 uuid: 'the-uuid',
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
@@ -398,6 +417,7 @@ describe('Users controller', () => {
                 password: 'thepassword',
                 specialtyName: 'IG',
                 specialtyYear: 2,
+                permissions: [],
             };
             when(authServiceMock.authenticate('valid-email@provider.tld', 'thepassword')).thenResolve(user);
             when(authServiceMock.generateToken(deepEqual(user))).thenResolve('the-token');
@@ -445,6 +465,7 @@ describe('Users controller', () => {
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
                 uuid: 'the-uuid',
+                permissions: [],
             });
 
             const result = await controller.getUnregisteredUser('the-uuid');

@@ -23,6 +23,7 @@ describe('Authentication service', () => {
         specialtyName: 'the-specialty',
         specialtyYear: 1,
         uuid: 'the-uuid',
+        permissions: [],
     };
 
     describe('authenticate method', () => {    
@@ -71,18 +72,13 @@ describe('Authentication service', () => {
 
             let token = await service.generateToken(user);
             let claims = await service.verifyToken(token);
-            
-            /* Removing iat from claims, we don't want to check its value */
-            Object.defineProperty(claims, 'iat', {
-                value: undefined,
-                enumerable: false,
-            });
 
             expect(claims).to.be.eql(<JWTClaims>{
-                bde_uuid: user.bdeUUID,
+                bdeUUID: user.bdeUUID,
                 firstname: user.firstname,
                 lastname: user.lastname,
                 uuid: user.uuid,
+                permissions: [],
             });
         });
 
