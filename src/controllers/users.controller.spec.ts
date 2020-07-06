@@ -26,6 +26,20 @@ describe('Users controller', () => {
 
     describe('create', () => {
 
+        it('should return "unauthorized" http code when given token is undefined', async () => {
+            const result = await controller.create({});
+            
+            expect(result.code).to.eq(HttpCode.Unauthorized);
+        });
+
+        it('should return "unauthorized" http code when auth service rejects given token', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenReject();
+
+            const result = await controller.create({}, 'the-token');
+            verify(authServiceMock.verifyToken('the-token')).once();
+            expect(result.code).to.eq(HttpCode.Unauthorized);
+        });
+
         const validClaims: JWTClaims = {
             bdeUUID: 'bde-uuid',
             firstname: 'Firstname',
@@ -33,6 +47,33 @@ describe('Users controller', () => {
             permissions: [Permissions.ADD_USER],
             uuid: 'the-uuid',
         };
+
+        it('should return "forbidden" http code when user does not have required permission', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve({
+                ... validClaims,
+                permissions: [],
+            });
+
+            const result = await controller.create({
+                email: 'valid-email@provider.tld',
+                bde: 'bde-uuid',
+            }, 'the-token');
+
+            verify(authServiceMock.verifyToken('the-token')).once();
+            expect(result.code).to.eq(HttpCode.Forbidden);
+        });
+
+        it('should return "forbidden" http code when user tries to add an user in an other BDE', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
+
+            const result = await controller.create({
+                email: 'valid-email@provider.tld',
+                bde: 'other-bde-uuid',
+            }, 'the-token');
+
+            verify(authServiceMock.verifyToken('the-token')).once();
+            expect(result.code).to.eq(HttpCode.Forbidden);
+        });
 
         it('should return "bad request" http code when given email is malformed', async () => {
             when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
