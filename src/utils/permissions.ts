@@ -1,4 +1,4 @@
-import {Permissions, Permission, User} from '../models/user.model';
+import { Permissions, Permission } from '../models/user.model';
 
 /**
  * Returns the highest permission level of the given user.
@@ -17,8 +17,8 @@ export function findPermissionLevel(user: { permissions: Permission[] }): number
  * @param target The user targeted by source user
  */
 export function canManagePermissions(source: { bdeUUID: string, permissions: Permission[]}, target: { bdeUUID: string, permissions: Permission[]}): boolean {
-    /* The ALL permission allows to bypass every permission check */
-    if (source.permissions.includes(Permissions.ALL)) {
+    /* The ALL permission allows to bypass every permission check but should not be able to manage permissions of someone having ALL permission */
+    if (source.permissions.includes(Permissions.ALL) && !target.permissions.includes(Permissions.ALL)) {
         return true;
     }
 
