@@ -1,13 +1,20 @@
-import { BDEService, BDEErrorType } from "../services";
+import { BDEService, BDEErrorType, MailingService } from "../services";
 import { ValidatorBuilder } from '../validation'
-import { BDE } from "../models";
+import { BDE, UnregisteredUser, Permissions } from "../models";
 import { v4 as uuid } from 'uuid';
-import * as httpCode from '../utils/http-code'; 
+import * as httpCode from '../utils/http-code';
 
 export class BDEController {
 
-    private static BDE_VALIDATOR = ValidatorBuilder.new<{ name: string, specialties: { name: string, minYear: number, maxYear: number}[] }>()
+    private static EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+    private static BDE_VALIDATOR = ValidatorBuilder.new<{ 
+                                        name: string,
+                                        ownerEmail: string,
+                                        specialties: { name: string, minYear: number, maxYear: number}[]
+                                    }>()
                                     .requires("name").toBeString().withMinLength(1).withMaxLength(30)
+                                    .requires('ownerEmail').toBeString().matching(BDEController.EMAIL_REGEX)
                                     .requires('specialties').toBeArray().withMinLength(1).withEachElementValidating(
                                         ValidatorBuilder.new()
                                             .requires('name').toBeString().withMinLength(2)
@@ -16,7 +23,7 @@ export class BDEController {
                                             .build()
                                     ).build();
 
-    constructor(private bdeService: BDEService) {}
+    constructor(private bdeService: BDEService, private mailingService: MailingService) {}
 
     /**
      * Handles a BDE creation request.
@@ -41,8 +48,16 @@ export class BDEController {
             return httpCode.badRequest('Expected specialty minYear to be lower than or equal to specialty maxYear');
         }
 
+        const ownerUser: UnregisteredUser = {
+            uuid: uuid(),
+            bdeUUID: bdeObject.uuid,
+            email: result.value.ownerEmail,
+            permissions: [Permissions.MANAGE_BDE],
+        };
+
         try {
-            const bde = await this.bdeService.create(bdeObject);
+            const bde = await this.bdeService.create(bdeObject, ownerUser);
+            await this.mailingService.sendRegistrationMail(ownerUser);
             return httpCode.created(bde);
         } catch (e) {
             if (e.type === BDEErrorType.BDE_ALREADY_EXISTS) {
@@ -52,6 +67,8 @@ export class BDEController {
                  * this possibility to be highly unlikely ; espcially on a low key-space as BDE one.
                  */
                 return httpCode.badRequest(e.message);
+            } else if (e.type === BDEErrorType.USER_ALREADY_EXISTS) {
+                return httpCode.badRequest('Email already used.');
             } else {
                 return httpCode.internalServerError('Unable to create a BDE. Contact an administrator.');
             }

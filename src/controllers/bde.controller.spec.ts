@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {mock, instance, verify, when, anything, reset} from 'ts-mockito';
 import {HttpCode} from '../utils/http-code';
-import { BDEService, BDEErrorType, BDEServiceError } from '../services';
+import { BDEService, BDEErrorType, BDEServiceError, MailingService } from '../services';
 
 chai.use(chaiAsPromised);
 
@@ -12,10 +12,12 @@ const { expect } = chai;
 describe('BDE controller', () => {
 
     const serviceMock = mock<BDEService>();
-    const controller = new BDEController(instance(serviceMock));
+    const mailingServiceMock = mock<MailingService>();
+    const controller = new BDEController(instance(serviceMock), instance(mailingServiceMock));
 
     beforeEach(() => {
         reset(serviceMock);
+        reset(mailingServiceMock);
     });
 
     describe('createBde', () => {
@@ -23,7 +25,8 @@ describe('BDE controller', () => {
         it('should return "bad request" http code when empty BDE name is given', async () => {
             let body = {
                 name: '',
-                specialties: [{ name: 'IG', minYear: 1, maxYear: 5 }]
+                specialties: [{ name: 'IG', minYear: 1, maxYear: 5 }],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -35,7 +38,8 @@ describe('BDE controller', () => {
         it('should return "bad request" http code when empty specialty array is given', async () => {
             let body = {
                 name: 'Montpellier',
-                specialties: []
+                specialties: [],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -48,6 +52,7 @@ describe('BDE controller', () => {
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: '', minYear: 1, maxYear: 5}],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -60,6 +65,7 @@ describe('BDE controller', () => {
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 0, maxYear: 5}],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -73,6 +79,7 @@ describe('BDE controller', () => {
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 1, maxYear: 6}],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -85,6 +92,7 @@ describe('BDE controller', () => {
             let body = {
                 name: 'Montpellier',
                 specialties: [{ name: 'IG', minYear: 4, maxYear: 3}],
+                ownerEmail: 'valid-email@provider.tld',
             };
 
             let result = await controller.create(body);
@@ -94,6 +102,18 @@ describe('BDE controller', () => {
             expect(result.body['message'], 'Error message must contain the errored property name').to.have.string('maxYear');
         });
 
+        it('should return "bad request" http code when given owner email is not a valid email format', async () => {
+            let body = {
+                name: 'Montpellier',
+                specialties: [{ name: 'IG', minYear: 1, maxYear: 3}],
+                ownerEmail: '@provider.tld',
+            };
+
+            let result = await controller.create(body);
+            expect(result.code, 'It should return "bad request" http code').to.eq(HttpCode.BadRequest);
+            expect(result.body, 'Body should contain a "message" property describing the encountered error').to.have.property('message');
+        });
+
         const validBody = {
             name: 'Montpellier',
             specialties: [{
@@ -101,29 +121,46 @@ describe('BDE controller', () => {
                 minYear: 3,
                 maxYear: 5
             }],
+            ownerEmail: 'valid-email@provider.tld',
         };
 
-        it('should return an "internal server error" http code when bde service rejects with an INTERNAL error', async () => {
-            when(serviceMock.create(anything())).thenReject(new BDEServiceError('', BDEErrorType.INTERNAL));
+        it('should return "bad request" http code when bde service rejects with an USER_ALREADY_EXISTS error', async () => {
+            when(serviceMock.create(anything(), anything())).thenReject(new BDEServiceError('', BDEErrorType.USER_ALREADY_EXISTS));
 
             const result = await controller.create(validBody);
-            verify(serviceMock.create(anything())).once();
+            verify(serviceMock.create(anything(), anything())).once();
+            expect(result.code).to.eq(HttpCode.BadRequest);
+        });
+
+        it('should return an "internal server error" http code when bde service rejects with an INTERNAL error', async () => {
+            when(serviceMock.create(anything(), anything())).thenReject(new BDEServiceError('', BDEErrorType.INTERNAL));
+
+            const result = await controller.create(validBody);
+            verify(serviceMock.create(anything(), anything())).once();
+            expect(result.code).to.eq(HttpCode.InternalServerError);
+        });
+
+        it('should return an "internal server error" http code when mailing service rejects', async () => {
+            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, uuid: '' });
+            when(mailingServiceMock.sendRegistrationMail(anything())).thenReject(new Error(''));
+
+            const result = await controller.create(validBody);
             expect(result.code).to.eq(HttpCode.InternalServerError);
         });
 
         it('should return a "bad request" http code when bde service rejects with a BDE_ALREADY_EXISTS error', async () => {
-            when(serviceMock.create(anything())).thenReject(new BDEServiceError('', BDEErrorType.BDE_ALREADY_EXISTS));
+            when(serviceMock.create(anything(), anything())).thenReject(new BDEServiceError('', BDEErrorType.BDE_ALREADY_EXISTS));
 
             const result = await controller.create(validBody);
-            verify(serviceMock.create(anything())).once();
+            verify(serviceMock.create(anything(), anything())).once();
             expect(result.code).to.eq(HttpCode.BadRequest);
         });
 
         it('should return a "created" http code when bde service resolves', async () => {
-            when(serviceMock.create(anything())).thenResolve({ ... validBody, uuid: '' });
+            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, uuid: '' });
 
             const result = await controller.create(validBody);
-            verify(serviceMock.create(anything())).once();
+            verify(serviceMock.create(anything(), anything())).once();
             expect(result.code).to.eq(HttpCode.Created);
         });
 
