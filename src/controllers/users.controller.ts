@@ -1,4 +1,4 @@
-import { UsersService, UsersErrorType, AuthenticationService, MailingService, JWTClaims } from "../services";
+import { UsersService, UsersErrorType, AuthenticationService, MailingService, JWTClaims, LoggingService } from "../services";
 import { UnregisteredUser, User } from "../models";
 import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
@@ -44,7 +44,8 @@ export class UsersController {
     constructor(
         private usersService: UsersService, 
         private authService: AuthenticationService,
-        private mailingService: MailingService
+        private mailingService: MailingService,
+        private loggingService: LoggingService
     ) {}
 
     /**
@@ -98,6 +99,7 @@ export class UsersController {
             if (e.type === UsersErrorType.USER_ALREADY_EXISTS) {
                 return httpCode.badRequest('Email already used.');
             }
+            this.loggingService.error('Unable to create user.', e);
             return httpCode.internalServerError('Unable to create an user. Contact an administrator or try again later.');
         }
     }
@@ -121,6 +123,7 @@ export class UsersController {
             if (e.type === UsersErrorType.USER_NOT_EXISTS) {
                 return httpCode.badRequest('Can\'t find an user with the given UUID.');
             }
+            this.loggingService.error('Unable to finish user registration.', e);
             return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
         }
 
@@ -146,6 +149,7 @@ export class UsersController {
             } else if (e.type === UsersErrorType.INVALID_SPECIALTY) {
                 return httpCode.badRequest('The specified specialty is not provided by your BDE');
             }
+            this.loggingService.error('Unable to finish user registration.', e);
             return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
         }
     }
@@ -167,6 +171,7 @@ export class UsersController {
             user = await this.authService.authenticate(result.value.email, result.value.password);
         } catch (e) {
             if (e.type === UsersErrorType.INTERNAL) {
+                this.loggingService.error('Unable to authenticate user.', e);
                 return httpCode.internalServerError('Unable to authenticate an user. Contact an administrator or retry later.');
             }
             return httpCode.badRequest('Invalid credentials.');
@@ -176,6 +181,7 @@ export class UsersController {
             let token = await this.authService.generateToken(user);
             return httpCode.ok({ token });
         } catch (e) {
+            this.loggingService.error('Unable to authenticate user.', e);
             return httpCode.internalServerError('Unable to authenticate an user. Contact an administrator or retry later.');
         }
     }
@@ -198,6 +204,7 @@ export class UsersController {
             if (e.type === UsersErrorType.USER_NOT_EXISTS) {
                 return httpCode.notFound('No user with this UUID exists.');
             } else {
+                this.loggingService.error('Unable to get unregistered user by UUID.', e);
                 return httpCode.internalServerError('Unable to access this resources. Contact an adminstrator or retry later.');
             }
         }

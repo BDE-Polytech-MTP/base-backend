@@ -1,4 +1,4 @@
-import { BDEService, BDEErrorType, MailingService } from "../services";
+import { BDEService, BDEErrorType, MailingService, LoggingService } from "../services";
 import { ValidatorBuilder } from '../validation'
 import { BDE, UnregisteredUser, Permissions } from "../models";
 import { v4 as uuid } from 'uuid';
@@ -23,7 +23,11 @@ export class BDEController {
                                             .build()
                                     ).build();
 
-    constructor(private bdeService: BDEService, private mailingService: MailingService) {}
+    constructor(
+        private bdeService: BDEService,
+        private mailingService: MailingService,
+        private loggingService: LoggingService
+    ) {}
 
     /**
      * Handles a BDE creation request.
@@ -70,6 +74,7 @@ export class BDEController {
             } else if (e.type === BDEErrorType.USER_ALREADY_EXISTS) {
                 return httpCode.badRequest('Email already used.');
             } else {
+                this.loggingService.error('Unable to create a BDE.', e);
                 return httpCode.internalServerError('Unable to create a BDE. Contact an administrator.');
             }
         }
@@ -84,6 +89,7 @@ export class BDEController {
             let bdes = await this.bdeService.listAll();
             return httpCode.ok(bdes);
         } catch (e) {
+            this.loggingService.error('Unable to list BDEs.', e);
             return httpCode.internalServerError('Unable to fetch all BDEs. Contact an administrator or retry later.');
         }
     }
@@ -106,6 +112,7 @@ export class BDEController {
             if (e.type === BDEErrorType.BDE_NOT_EXISTS) {
                 return httpCode.notFound('No BDE with this UUID exists.');
             } else {
+                this.loggingService.error('Unable to get BDE by UUID.', e);
                 return httpCode.internalServerError('Unable to fetch BDE with the given UUID. Contact an administrator or retry later.');
             }
         }
