@@ -1,7 +1,7 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { mock, instance, verify, when, anything, reset, deepEqual, resetCalls } from 'ts-mockito';
-import { UsersService, AuthenticationService, MailingService, UsersServiceError, UsersErrorType, JWTClaims } from '../services';
+import { UsersService, AuthenticationService, MailingService, UsersServiceError, UsersErrorType, JWTClaims, LoggingService } from '../services';
 import { UsersController } from '../controllers';
 import { HttpCode } from '../utils/http-code';
 import { User, UnregisteredUser, Permissions } from '../models';
@@ -15,7 +15,8 @@ describe('Users controller', () => {
     const usersServiceMock = mock<UsersService>();
     const authServiceMock = mock<AuthenticationService>();
     const mailingServiceMock = mock<MailingService>();
-    const controller = new UsersController(instance(usersServiceMock), instance(authServiceMock), instance(mailingServiceMock));
+    const loggingServiceMock = mock<LoggingService>();
+    const controller = new UsersController(instance(usersServiceMock), instance(authServiceMock), instance(mailingServiceMock), instance(loggingServiceMock));
 
     beforeEach(() => {
         reset(usersServiceMock);

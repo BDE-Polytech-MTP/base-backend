@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {mock, instance, verify, when, anything, reset} from 'ts-mockito';
 import {HttpCode} from '../utils/http-code';
-import { BDEService, BDEErrorType, BDEServiceError, MailingService } from '../services';
+import { BDEService, BDEErrorType, BDEServiceError, MailingService, LoggingService } from '../services';
 
 chai.use(chaiAsPromised);
 
@@ -13,7 +13,8 @@ describe('BDE controller', () => {
 
     const serviceMock = mock<BDEService>();
     const mailingServiceMock = mock<MailingService>();
-    const controller = new BDEController(instance(serviceMock), instance(mailingServiceMock));
+    const loggingServiceMock = mock<LoggingService>();
+    const controller = new BDEController(instance(serviceMock), instance(mailingServiceMock), instance(loggingServiceMock));
 
     beforeEach(() => {
         reset(serviceMock);
