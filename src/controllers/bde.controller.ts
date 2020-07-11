@@ -56,7 +56,7 @@ export class BDEController {
             uuid: uuid(),
             bdeUUID: bdeObject.uuid,
             email: result.value.ownerEmail,
-            permissions: [Permissions.MANAGE_BDE],
+            permissions: [Permissions.MANAGE_BDE, Permissions.MANAGE_PERMISSIONS, Permissions.ADD_USER],
         };
 
         try {
