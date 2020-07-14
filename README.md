@@ -1,5 +1,8 @@
 # Generic backend
 
+![build](https://github.com/BDE-Polytech-MTP/generic-backend/workflows/build/badge.svg)
+[![codecov](https://codecov.io/gh/BDE-Polytech-MTP/generic-backend/branch/master/graph/badge.svg)](https://codecov.io/gh/BDE-Polytech-MTP/generic-backend)
+
 This repository contains a part of the backend used for the network website. It's platform/framework agnostic and then can be used
 to deploy on any PaaS.
 
