@@ -8,7 +8,8 @@
     "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'",
     "build": "tsc",
     "postinstall": "tsc --build tsconfig.install.json",
-    "coverage": "nyc npm run test"
+    "coverage": "nyc npm run test",
+    "test-ci": "nyc --reporter=json npm run test"
   },
   "author": "Florent HUGOUVIEUX",
   "license": "Apache-2.0",
