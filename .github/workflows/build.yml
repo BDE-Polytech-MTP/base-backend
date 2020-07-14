@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2.1.0
+
+    - name: Install
+      run: npm install
+
+    - name: Run tests
+      run: npm run test-ci
+        
+    - name: Upload coverage
+      uses: codecov/codecov-action@v1.0.10
+      with:
+        file: ./coverage/coverage-final.json
+        fail_ci_if_error: true
