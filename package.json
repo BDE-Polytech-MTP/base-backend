@@ -1,6 +1,13 @@
 {
-  "name": "generic-backend",
+  "name": "@bde-polytech-mtp/base-backend",
   "version": "1.0.0",
+  "publishConfig": { 
+    "registry": "https://npm.pkg.github.com/" 
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/bde-polytech-mtp/base-backend"
+  },
   "description": "Generic backend logic for BDE website",
   "main": "dist/lib.js",
   "types": "dist/lib.d.ts",
