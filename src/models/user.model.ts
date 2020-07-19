@@ -90,6 +90,7 @@ export const Permissions: {
     ADD_USER: Permission,
     MANAGE_PERMISSIONS: Permission,
     MANAGE_BDE: Permission,
+    MANAGE_EVENTS: Permission,
 } = {
 
     /**
@@ -127,6 +128,15 @@ export const Permissions: {
         name: 'manage_bde',
         level: 1000,
         modifiable: false,
-    }
+    },
+
+    /**
+     * This permissions allows an user to create/modify/delete an event organized by its BDE.
+     */
+    MANAGE_EVENTS: {
+        name: 'manage_events',
+        level: 100,
+        modifiable: true,
+    },
 
 };

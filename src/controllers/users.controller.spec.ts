@@ -1,6 +1,6 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { mock, instance, verify, when, anything, reset, deepEqual, resetCalls } from 'ts-mockito';
+import { mock, instance, verify, when, anything, reset, deepEqual } from 'ts-mockito';
 import { UsersService, AuthenticationService, MailingService, UsersServiceError, UsersErrorType, JWTClaims, LoggingService } from '../services';
 import { UsersController } from '../controllers';
 import { HttpCode } from '../utils/http-code';

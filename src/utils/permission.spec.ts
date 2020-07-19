@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { canAddUser, canManagePermissions } from './permissions';
+import { canAddUser, canManagePermissions, canManageEvents } from './permissions';
 import { Permissions } from '../models';
 
 describe('Permissions', () => {
@@ -68,6 +68,27 @@ describe('Permissions', () => {
                 { bdeUUID: 'bde-uuid', permissions: [] },
                 { bdeUUID: 'bde-uuid', permissions: [] }
             )).to.be.false;
+        });
+
+    });
+
+    describe('canManageEvents', () => {
+
+        it('should return true if source has ALL permission', () => {
+            expect(canManageEvents({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'bde-uuid')).to.be.true;
+            expect(canManageEvents({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'other-bde-uuid')).to.be.true;
+        });
+
+        it('should return true if user has permission MANAGE_EVENTS and want to manage an event that belongs to his own BDE', () => {
+            expect(canManageEvents({ bdeUUID: 'bde-uuid', permissions: [Permissions.MANAGE_EVENTS] }, 'bde-uuid')).to.be.true;
+        });
+
+        it('should return false if use has permission MANAGE_EVENTS and want to manage an event that belongs to an other BDE', () => {
+            expect(canManageEvents({ bdeUUID: 'bde-uuid', permissions: [Permissions.MANAGE_EVENTS] }, 'other-bde-uuid')).to.be.false;
+        });
+
+        it('should return false if user does not have MANAGE_EVENTS permission', () => {
+            expect(canManageEvents({ bdeUUID: 'bde-uuid', permissions: [] }, 'bde-uuid')).to.be.false;
         });
 
     });
