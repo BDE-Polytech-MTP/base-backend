@@ -5,7 +5,8 @@ import {Event} from '../models';
  */
 export enum EventsErrorType {
     INTERNAL,
-    EVENT_NOT_EXISTS
+    EVENT_NOT_EXISTS,
+    BDE_UUID_NOT_EXISTS
 }
 
 /**

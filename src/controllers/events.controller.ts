@@ -1,4 +1,4 @@
-import { EventsService, AuthenticationService, JWTClaims } from '../services';
+import { EventsService, AuthenticationService, JWTClaims, EventsErrorType } from '../services';
 import { ValidatorBuilder } from '../validation';
 import { Event, EventState } from '../models';
 import { DateTime } from 'luxon';
@@ -21,7 +21,7 @@ export class EventsController {
     constructor(private eventsService: EventsService, private authService: AuthenticationService) {}
 
     /**
-     * Handles a request to aims to create an event.
+     * Handles a request that aims to create an event.
      * 
      * @param body The request body
      * @param token The JWT to identify user
@@ -85,6 +85,51 @@ export class EventsController {
             return httpCode.internalServerError('Unable to create an event. Contact an administrator or retry later.');
         }
 
+    }
+
+    /**
+     * Handles a request that aims to retrieve an event.
+     * 
+     * @param eventUUID The UUID of the event to get
+     * @param token The JWT to identify user
+     */
+    async findOne(eventUUID: string, token?: string): Promise<httpCode.Response> {
+
+        /* Retrieve event using events service */
+        let event: Event;
+        try {
+            event = await this.eventsService.findByUUID(eventUUID);
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound('Not found');
+            }
+            return httpCode.internalServerError('Unable to fetch this event. Contact an adminstrator or retry later.');
+        }
+
+        /* If the event is a draft, the user must have the permission to manage events in order to fetch it */
+        if (event.isDraft) {
+
+            /* If no token was provided, we discard the request */
+            if (!token) {
+                return httpCode.unauthorized('You must authenticate to access this resource.');
+            }
+            
+            /* We decode the received token */
+            let user: JWTClaims;
+            try {
+                user = await this.authService.verifyToken(token);
+            } catch (_) {
+                return httpCode.unauthorized('The given token is invalid.');
+            }
+
+            /* If the user does not have the permission to manage this event, we discard the request */
+            if (!canManageEvents(user, event.bdeUUID)) {
+                return httpCode.forbidden('You do not have the permission to access this resource.');
+            }
+
+        }
+
+        return httpCode.ok(event);
     }
 
 }
