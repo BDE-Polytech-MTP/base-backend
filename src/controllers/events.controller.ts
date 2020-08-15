@@ -6,10 +6,12 @@ import { v4 as uuid } from 'uuid';
 import * as httpCode from '../utils/http-code';
 import { canManageEvents } from '../utils/permissions';
 
+interface EventBodyRequest { name: string, bde: string, isDraft: boolean, bookingStart?: string, bookingEnd?: string, eventDate?: string };
+
 export class EventsController {
 
     private static EVENT_VALIDATOR = ValidatorBuilder
-                                        .new<{ name: string, bde: string, isDraft: boolean, bookingStart?: string, bookingEnd?: string, eventDate?: string }>()
+                                        .new<EventBodyRequest>()
                                         .requires('name').toBeString().withMinLength(1).withMaxLength(200)
                                         .requires('bde').toBeString().withMinLength(1)
                                         .requires('isDraft').toBeBoolean()
@@ -19,6 +21,35 @@ export class EventsController {
                                         .build();
 
     constructor(private eventsService: EventsService, private authService: AuthenticationService) {}
+
+    /**
+     * Populates given instance with dates instance for each existing date in request data.
+     * 
+     * @param event The event instance
+     * @param eventData The request data
+     */
+    private assignDates(event: Event, eventData: EventBodyRequest) {
+        if (eventData.bookingStart) {
+            event.bookingStart = DateTime.fromISO(eventData.bookingStart);
+        }
+
+        if (eventData.bookingEnd) {
+            event.bookingEnd = DateTime.fromISO(eventData.bookingEnd);
+        }
+
+        if (eventData.eventDate) {
+            event.eventDate = DateTime.fromISO(eventData.eventDate);
+        }
+    }
+
+    /**
+     * Checks if the beginning booking date if strictly before the end date for booking (if both are given).
+     * 
+     * @param event The event to check booking dates of
+     */
+    private areBookingDatesWellOrdered(event: Event): boolean | undefined {
+        return event.bookingStart && event.bookingEnd && event.bookingStart < event.bookingEnd
+    }
 
     /**
      * Handles a request that aims to create an event.
@@ -55,20 +86,11 @@ export class EventsController {
             isDraft: result.value.isDraft,
         };
 
-        if (result.value.bookingStart) {
-            event.bookingStart = DateTime.fromISO(result.value.bookingStart);
-        }
+        /* Assign dates instances */
+        this.assignDates(event, result.value);
 
-        if (result.value.bookingEnd) {
-            event.bookingEnd = DateTime.fromISO(result.value.bookingEnd);
-        }
-
-        if (result.value.eventDate) {
-            event.eventDate = DateTime.fromISO(result.value.eventDate);
-        }
-
-        /* If bookingStart and bookingEnd are specified, we check if bookingStart if before bookingEnd */
-        if (event.bookingStart && event.bookingEnd && event.bookingEnd <= event.bookingStart) {
+        /* We check booking dates order */
+        if (!this.areBookingDatesWellOrdered(event)) {
             return httpCode.badRequest('Booking end date must come (strictly) after booking beginning date.');
         }
 
@@ -130,6 +152,83 @@ export class EventsController {
         }
 
         return httpCode.ok(event);
+    }
+
+    /**
+     * Handles a request that aims to patch an event.
+     * 
+     * @param eventUUID The UUID of the event to patch
+     * @param body The request body
+     * @param token The JWT to identify user
+     */
+    async patchEvent(eventUUID: string, body: object | null, token?: string): Promise<httpCode.Response> {
+        
+        /* No user token were given, we return an unauthorized error */
+        if (!token) {
+            return httpCode.unauthorized('You must be connected.');
+        }
+
+        /* Try to authenticate the user from the given token */
+        let claims: JWTClaims;
+        try {
+            claims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.unauthorized('The given token is invalid.');
+        }
+
+        /* Validate request body */
+        const result = EventsController.EVENT_VALIDATOR.validate(body);
+        if (!result.valid) {
+            return httpCode.badRequest(result.error.message);
+        }
+
+        let event: Event = {
+            uuid: eventUUID,
+            bdeUUID: result.value.bde,
+            name: result.value.name,
+            eventState: EventState.WAIT_BOOKING_TO_OPEN,
+            isDraft: result.value.isDraft,
+        };
+
+        /* Assign dates instances */
+        this.assignDates(event, result.value);
+
+        /* We check booking dates order */
+        if (!this.areBookingDatesWellOrdered(event)) {
+            return httpCode.badRequest('Booking end date must come (strictly) after booking beginning date.');
+        }
+
+        /* Fetch event with the given UUID */
+        let fecthedEvent: Event;
+        try {
+            fecthedEvent = await this.eventsService.findByUUID(event.uuid);
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
+            }
+            return httpCode.internalServerError('Unable to patch the event. Please contact and adminstrator or retry later.');
+        }
+
+        /* If the request tries to change event's bde UUID, we check if the user has the permission to manage events for the new old BDE */
+        if (event.bdeUUID !== fecthedEvent.bdeUUID && !canManageEvents(claims, fecthedEvent.bdeUUID)) {
+            return httpCode.forbidden('You do not have the permission to patch this event.');
+        }
+
+        /* Checking user permission */
+        if (!canManageEvents(claims, event.bdeUUID)) {
+            return httpCode.forbidden('You do not have the permission to patch this event.');
+        }
+
+        try {
+            event = await this.eventsService.create(event)
+            return httpCode.created(event);
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
+            }
+            return httpCode.internalServerError('Unable to patch event. Contact an administrator or retry later.');
+        }
+
     }
 
 }

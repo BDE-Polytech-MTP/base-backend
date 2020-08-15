@@ -25,6 +25,17 @@ export interface EventsService {
     create(event: Event): Promise<Event>;
 
     /**
+     * Updates the given event.
+     * 
+     * @param event The new value for the event
+     * 
+     * @returns the updated event if the update is a success
+     * @throws EVENT_NOT_EXISTS if no event with the given UUID exists
+     * @throws INTERNAL error in any other case
+     */
+    update(event: Event): Promise<Event>;
+
+    /**
      * Deletes the event with the given UUID.
      * 
      * @returns the deleted event is deletion is a success
