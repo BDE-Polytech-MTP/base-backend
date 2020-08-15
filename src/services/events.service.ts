@@ -17,10 +17,10 @@ export interface EventsService {
     /**
      * Creates the given event.
      * 
+     * @param event The event to create
+     * 
      * @returns the event if creation is a success
      * @throws INTERNAL error in any other case
-     * 
-     * @param event The event to create
      */
     create(event: Event): Promise<Event>;
 
@@ -38,22 +38,22 @@ export interface EventsService {
     /**
      * Deletes the event with the given UUID.
      * 
+     * @param uuid The event UUID
+     * 
      * @returns the deleted event is deletion is a success
      * @throws EVENT_NOT_EXISTS error if the no event with the given UUID can be found
      * @throws INTERNAL error in any other case
-     * 
-     * @param uuid The event UUID
      */
     delete(uuid: string): Promise<Event>;
 
     /**
      * Finds the event with the given UUID.
      * 
+     * @param uuid The event UUID
+     * 
      * @returns the event with the given UUID if found
      * @throws EVENT_NOT_EXISTS error if no event with the given UUID can be found
      * @throws INTERNAL error in any other case
-     * 
-     * @param uuid The event UUID
      */
     findByUUID(uuid: string): Promise<Event>;
 
@@ -63,10 +63,10 @@ export interface EventsService {
      * Note: this function does not need to ensure a BDE with the given UUID exists, in the case of an unknown BDE UUID, just return an
      * empty array
      * 
+     * @param bdeUUID The UUID of an existing BDE
+     * 
      * @returns an array of events if searched is a success (empty array is considered as a success if BDE didn't organize any event)
      * @throws INTERNAL error in any other case
-     * 
-     * @param bdeUUID The UUID of an existing BDE
      */
     findByBDE(bdeUUID: string): Promise<Event[]>;
 
