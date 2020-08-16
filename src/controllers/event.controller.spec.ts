@@ -117,12 +117,20 @@ describe('Events controller', () => {
             expect(result.body).to.eq(event);
         });
 
-        it('should return "internal server error" http code if events service rejects', async () => {
+        it('should return "internal server error" http code if events service rejects with INTERNAL error', async () => {
             when(authServiceMock.verifyToken('the-token')).thenResolve(jwtClaims);
             when(eventsServiceMock.create(anything())).thenReject(new EventsServiceError('', EventsErrorType.INTERNAL));
             const result = await controller.create(validRequestBody, 'the-token');
 
             expect(result.code).to.eq(HttpCode.InternalServerError);
+        });
+
+        it('should return "bad request" http code if events service rejects with BDE_UUID_NOT_EXISTS error', async () => {
+            when(authServiceMock.verifyToken('the-token')).thenResolve(jwtClaims);
+            when(eventsServiceMock.create(anything())).thenReject(new EventsServiceError('', EventsErrorType.BDE_UUID_NOT_EXISTS));
+            const result = await controller.create(validRequestBody, 'the-token');
+
+            expect(result.code).to.eq(HttpCode.BadRequest);
         });
         
     });

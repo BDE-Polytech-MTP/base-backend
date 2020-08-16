@@ -101,9 +101,11 @@ export class EventsController {
 
         try {
             event = await this.eventsService.create(event)
-
             return httpCode.created(event);
-        } catch (_) {
+        } catch (e) {
+            if (e.type === EventsErrorType.BDE_UUID_NOT_EXISTS) {
+                return httpCode.badRequest('Given bde UUID does not exist.');
+            }
             return httpCode.internalServerError('Unable to create an event. Contact an administrator or retry later.');
         }
 
