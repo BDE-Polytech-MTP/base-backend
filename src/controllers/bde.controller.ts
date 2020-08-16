@@ -17,7 +17,7 @@ export class BDEController {
                                     .requires('ownerEmail').toBeString().matching(BDEController.EMAIL_REGEX)
                                     .requires('specialties').toBeArray().withMinLength(1).withEachElementValidating(
                                         ValidatorBuilder.new()
-                                            .requires('name').toBeString().withMinLength(2)
+                                            .requires('name').toBeString().withMinLength(2).withMaxLength(10)
                                             .requires('minYear').toBeInteger().withMinValue(1).withMaxValue(5)
                                             .requires('maxYear').toBeInteger().withMinValue(1).withMaxValue(5)
                                             .build()
