@@ -20,6 +20,7 @@ export interface EventsService {
      * @param event The event to create
      * 
      * @returns the event if creation is a success
+     * @throws BDE_UUID_NOT_EXISTS error if bde UUID in given event does not exists
      * @throws INTERNAL error in any other case
      */
     create(event: Event): Promise<Event>;
@@ -31,6 +32,7 @@ export interface EventsService {
      * 
      * @returns the updated event if the update is a success
      * @throws EVENT_NOT_EXISTS if no event with the given UUID exists
+     * @throws BDE_UUID_NOT_EXISTS error if bde UUID in given event does not exists
      * @throws INTERNAL error in any other case
      */
     update(event: Event): Promise<Event>;

@@ -47,8 +47,8 @@ export class EventsController {
      * 
      * @param event The event to check booking dates of
      */
-    private areBookingDatesWellOrdered(event: Event): boolean | undefined {
-        return event.bookingStart && event.bookingEnd && event.bookingStart < event.bookingEnd
+    private areBookingDatesWellOrdered(event: Event): boolean {
+        return event.bookingStart === undefined || event.bookingEnd === undefined || event.bookingStart < event.bookingEnd;
     }
 
     /**
@@ -195,13 +195,13 @@ export class EventsController {
 
         /* We check booking dates order */
         if (!this.areBookingDatesWellOrdered(event)) {
-            return httpCode.badRequest('Booking end date must come (strictly) after booking beginning date.');
+            return httpCode.badRequest('bookingEnd date must come (strictly) after bookingStart date.');
         }
 
         /* Fetch event with the given UUID */
-        let fecthedEvent: Event;
+        let fetchedEvent: Event;
         try {
-            fecthedEvent = await this.eventsService.findByUUID(event.uuid);
+            fetchedEvent = await this.eventsService.findByUUID(event.uuid);
         } catch (e) {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
                 return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
@@ -209,22 +209,24 @@ export class EventsController {
             return httpCode.internalServerError('Unable to patch the event. Please contact and adminstrator or retry later.');
         }
 
-        /* If the request tries to change event's bde UUID, we check if the user has the permission to manage events for the new old BDE */
-        if (event.bdeUUID !== fecthedEvent.bdeUUID && !canManageEvents(claims, fecthedEvent.bdeUUID)) {
+        /* If the request tries to change event's bde UUID, we check if the user has the permission to manage events for the new BDE */
+        if (event.bdeUUID !== fetchedEvent.bdeUUID && !canManageEvents(claims, event.bdeUUID)) {
             return httpCode.forbidden('You do not have the permission to patch this event.');
         }
 
         /* Checking user permission */
-        if (!canManageEvents(claims, event.bdeUUID)) {
+        if (!canManageEvents(claims, fetchedEvent.bdeUUID)) {
             return httpCode.forbidden('You do not have the permission to patch this event.');
         }
 
         try {
-            event = await this.eventsService.create(event)
-            return httpCode.created(event);
+            event = await this.eventsService.update(event)
+            return httpCode.ok(event);
         } catch (e) {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
                 return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
+            } else if (e.type === EventsErrorType.BDE_UUID_NOT_EXISTS) {
+                return httpCode.badRequest(`No BDE with UUID ${event.bdeUUID} exists.`);
             }
             return httpCode.internalServerError('Unable to patch event. Contact an administrator or retry later.');
         }
