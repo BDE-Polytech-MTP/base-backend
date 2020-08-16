@@ -3,7 +3,7 @@ import { mock, instance, when, anything, reset, verify } from 'ts-mockito';
 import { EventsService, AuthenticationService, EventsServiceError, JWTClaims, EventsErrorType } from '../services';
 import { EventsController } from '../controllers';
 import { HttpCode } from '../utils/http-code';
-import { Permissions, EventState, Event } from '../models';
+import { Permissions, Event } from '../models';
 
 const { expect } = chai;
 
@@ -103,7 +103,6 @@ describe('Events controller', () => {
         it('should return "created" http code if events service resolves', async () => {
             const event: Event = {
                 bdeUUID: 'bde-uuid',
-                eventState: EventState.WAIT_BOOKING_TO_OPEN,
                 isDraft: false,
                 name: 'event-name',
                 uuid: 'the-uuid'
@@ -155,7 +154,6 @@ describe('Events controller', () => {
             bdeUUID: 'bde-uuid',
             uuid: 'event-uuid',
             name: 'Event name',
-            eventState: 0,
             isDraft: true,
         };
 
@@ -243,7 +241,6 @@ describe('Events controller', () => {
             bdeUUID: 'bde-uuid',
             name: 'Event name',
             isDraft: false,
-            eventState: 0
         };
 
         const validRequestBody = {

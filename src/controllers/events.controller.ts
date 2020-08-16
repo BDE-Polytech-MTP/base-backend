@@ -1,6 +1,6 @@
 import { EventsService, AuthenticationService, JWTClaims, EventsErrorType } from '../services';
 import { ValidatorBuilder } from '../validation';
-import { Event, EventState } from '../models';
+import { Event } from '../models';
 import { DateTime } from 'luxon';
 import { v4 as uuid } from 'uuid';
 import * as httpCode from '../utils/http-code';
@@ -82,7 +82,6 @@ export class EventsController {
             uuid: uuid(),
             bdeUUID: result.value.bde,
             name: result.value.name,
-            eventState: EventState.WAIT_BOOKING_TO_OPEN,
             isDraft: result.value.isDraft,
         };
 
@@ -188,7 +187,6 @@ export class EventsController {
             uuid: eventUUID,
             bdeUUID: result.value.bde,
             name: result.value.name,
-            eventState: EventState.WAIT_BOOKING_TO_OPEN,
             isDraft: result.value.isDraft,
         };
 

@@ -17,22 +17,10 @@ export interface Event {
     /** Date at which event take place (optional) (indicative) */
     eventDate?: DateTime;
 
-    /** Event booking state */
-    eventState: EventState;
-
     /** UUID of the BDE which organize the event */
     bdeUUID: string;
 
     /** Is this event a draft */
     isDraft: boolean;
 
-}
-
-export enum EventState {
-    /** The event isn't opened yet */
-    WAIT_BOOKING_TO_OPEN = 0,
-    /** The event is opened */
-    ACCEPT_BOOKING_REQUESTS = 1,
-    /** The event is closed */
-    BOOKING_REQUESTS_CLOSED = 2,
 }
