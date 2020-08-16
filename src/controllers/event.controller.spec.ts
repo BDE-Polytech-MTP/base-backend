@@ -1,5 +1,5 @@
 import chai from 'chai';
-import { mock, instance, when, anything, reset } from 'ts-mockito';
+import { mock, instance, when, anything, reset, verify } from 'ts-mockito';
 import { EventsService, AuthenticationService, EventsServiceError, JWTClaims, EventsErrorType } from '../services';
 import { EventsController } from '../controllers';
 import { HttpCode } from '../utils/http-code';
@@ -133,6 +133,87 @@ describe('Events controller', () => {
             expect(result.code).to.eq(HttpCode.BadRequest);
         });
         
+    });
+
+    describe('findOne', () => {
+
+        it('should return "not found" http code if events service rejects with EVENT_NOT_EXISTS error on findByUUID call', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenReject(new EventsServiceError('', EventsErrorType.EVENT_NOT_EXISTS));
+
+            const result = await controller.findOne('event-uuid');
+            expect(result.code).to.eq(HttpCode.NotFound);
+        });
+
+        it('should return "internal server error" if events service rejects with INTERNAL error on findByUUID call', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenReject(new EventsServiceError('', EventsErrorType.INTERNAL));
+
+            const result = await controller.findOne('event-uuid');
+            expect(result.code).to.eq(HttpCode.InternalServerError);
+        });
+
+        const fetchedEvent: Event = {
+            bdeUUID: 'bde-uuid',
+            uuid: 'event-uuid',
+            name: 'Event name',
+            eventState: 0,
+            isDraft: true,
+        };
+
+        it('should return "unauthorized" http code if fetched event is a draft and no token were provided', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve(fetchedEvent);
+
+            const result = await controller.findOne('event-uuid');
+            expect(result.code).to.eq(HttpCode.Unauthorized);
+        });
+
+        it('should return "unauthorized" http code if fetched event is a draft and auth service rejects token', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve(fetchedEvent);
+            when(authServiceMock.verifyToken('the-token')).thenReject();
+
+            const result = await controller.findOne('event-uuid', 'the-token');
+            verify(authServiceMock.verifyToken('the-token')).once();
+            expect(result.code).to.eq(HttpCode.Unauthorized);
+        });
+
+        const jwtClaims: JWTClaims = {
+            bdeUUID: 'bde-uuid',
+            firstname: 'Firstname',
+            lastname: 'Lastname',
+            permissions: [Permissions.MANAGE_EVENTS],
+            uuid: 'the-uuid',
+        };
+
+        it('should return "forbidden" http code if fetched event is a draft and user does not have permission to manage events', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve(fetchedEvent);
+            when(authServiceMock.verifyToken('the-token')).thenResolve({ ... jwtClaims, permissions: [] });
+
+            const result = await controller.findOne('event-uuid', 'the-token');
+            expect(result.code).to.eq(HttpCode.Forbidden);
+        });
+
+        it('should return "forbidden" http code if fetched event is a draft, user has permission to manage events but not event is not an event of his bde', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve({ ... fetchedEvent, bdeUUID: 'other-bde-uuid' });
+            when(authServiceMock.verifyToken('the-token')).thenResolve(jwtClaims);
+
+            const result = await controller.findOne('event-uuid', 'the-token');
+            expect(result.code).to.eq(HttpCode.Forbidden);
+        });
+
+        it('should return "ok" http code if fetched event is a draft and user has permission to manage events', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve(fetchedEvent);
+            when(authServiceMock.verifyToken('the-token')).thenResolve(jwtClaims);
+
+            const result = await controller.findOne('event-uuid', 'the-token');
+            expect(result.code).to.eq(HttpCode.Ok);
+        });
+
+        it('should return "ok" http code if fetched event is not a draft', async () => {
+            when(eventsServiceMock.findByUUID('event-uuid')).thenResolve({ ... fetchedEvent, isDraft: false });
+
+            const result = await controller.findOne('event-uuid', 'the-token');
+            expect(result.code).to.eq(HttpCode.Ok);
+        });
+
     });
 
     describe('patch', () => {
