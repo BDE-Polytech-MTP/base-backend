@@ -1,6 +1,6 @@
 import chai from 'chai';
 import { mock, instance, when, anything, reset, verify } from 'ts-mockito';
-import { EventsService, AuthenticationService, EventsServiceError, JWTClaims, EventsErrorType } from '../services';
+import { EventsService, AuthenticationService, EventsServiceError, JWTClaims, EventsErrorType, LoggingService } from '../services';
 import { EventsController } from '../controllers';
 import { HttpCode } from '../utils/http-code';
 import { Permissions, Event } from '../models';
@@ -11,7 +11,8 @@ describe('Events controller', () => {
 
     const eventsServiceMock = mock<EventsService>();
     const authServiceMock = mock<AuthenticationService>();
-    const controller = new EventsController(instance(eventsServiceMock), instance(authServiceMock));
+    const loggingServiceMock = mock<LoggingService>();
+    const controller = new EventsController(instance(eventsServiceMock), instance(authServiceMock), instance(loggingServiceMock));
 
     beforeEach(() => {        
         reset(eventsServiceMock);
