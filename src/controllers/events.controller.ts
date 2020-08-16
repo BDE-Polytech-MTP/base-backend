@@ -1,4 +1,4 @@
-import { EventsService, AuthenticationService, JWTClaims, EventsErrorType } from '../services';
+import { EventsService, AuthenticationService, JWTClaims, EventsErrorType, LoggingService } from '../services';
 import { ValidatorBuilder } from '../validation';
 import { Event } from '../models';
 import { DateTime } from 'luxon';
@@ -20,7 +20,7 @@ export class EventsController {
                                         .optional('eventDate').toBeDateTime()
                                         .build();
 
-    constructor(private eventsService: EventsService, private authService: AuthenticationService) {}
+    constructor(private eventsService: EventsService, private authService: AuthenticationService, private loggingService: LoggingService) {}
 
     /**
      * Populates given instance with dates instance for each existing date in request data.
@@ -231,6 +231,36 @@ export class EventsController {
             return httpCode.internalServerError('Unable to patch event. Contact an administrator or retry later.');
         }
 
+    }
+
+    /**
+     * Handles a request that aims to list all known events.
+     * 
+     * @param token The JWT to identify user
+     */
+    async findAll(token?: string): Promise<httpCode.Response> {
+
+        /* Fetching all events from database (maybe later add pagination and delegate events filtering to events service) */
+        let events: Event[];
+        try {
+            events = await this.eventsService.findAll();
+        } catch (e) {
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to list events.');
+        }
+
+        /* If a token is provided, we try to authenticate user */
+        let jwtClaims: JWTClaims | null = null;
+        if (token) {
+            try {
+                jwtClaims = await this.authService.verifyToken(token);
+            } catch (_) {} // If token verification fails, we just handle request like no token were given
+        }
+
+        /* Only keep non-draft events and events manage-able by authenticated user (if so) */
+        const filteredEvents = events.filter((event) => !event.isDraft || (jwtClaims !== null && canManageEvents(jwtClaims, event.bdeUUID)));
+
+        return httpCode.ok(filteredEvents);
     }
 
 }

@@ -19,6 +19,8 @@ export interface Response {
     body: {[key: string]: any},
 };
 
+type ResponseData = string | object | Array<any>;
+
 /**
  * Normalizes the given data. If the data is a string, it transforms it
  * to a object with a 'message' property with the given string as value.
@@ -26,7 +28,7 @@ export interface Response {
  * 
  * @param data The data to normalize
  */
-function normalize(data: string | object) {
+function normalize(data: ResponseData) {
     if (typeof data === 'string') {
         return { message: data };
     }
@@ -38,7 +40,7 @@ function normalize(data: string | object) {
  * 
  * @param data The body data
  */
-export function ok(data: string | object): Response {
+export function ok(data: ResponseData): Response {
     return { code: HttpCode.Ok, body: normalize(data)};
 }
 
@@ -47,7 +49,7 @@ export function ok(data: string | object): Response {
  * 
  * @param data The created data
  */
-export function created(data: string | object): Response {
+export function created(data: ResponseData): Response {
     return { code: HttpCode.Created, body: normalize(data)};
 }
 
@@ -56,7 +58,7 @@ export function created(data: string | object): Response {
  * 
  * @param data The message describing the encountered error
  */
-export function badRequest(data: string | object): Response {
+export function badRequest(data: ResponseData): Response {
     return { code: HttpCode.BadRequest, body: normalize(data)};
 }
 
@@ -65,7 +67,7 @@ export function badRequest(data: string | object): Response {
  * 
  * @param data The message describing the encountered error
  */
-export function unauthorized(data: string | object): Response {
+export function unauthorized(data: ResponseData): Response {
     return { code: HttpCode.Unauthorized, body: normalize(data)};
 }
 
@@ -74,7 +76,7 @@ export function unauthorized(data: string | object): Response {
  * 
  * @param data The message describing the encountered error
  */
-export function forbidden(data: string | object): Response {
+export function forbidden(data: ResponseData): Response {
     return { code: HttpCode.Forbidden, body: normalize(data)};
 }
 
@@ -83,7 +85,7 @@ export function forbidden(data: string | object): Response {
  * 
  * @param data The message describing the encountered error
  */
-export function internalServerError(data: string | object): Response {
+export function internalServerError(data: ResponseData): Response {
     return { code: HttpCode.InternalServerError, body: normalize(data)};
 }
 
@@ -92,6 +94,6 @@ export function internalServerError(data: string | object): Response {
  * 
  * @param data The message describing the encountered error
  */
-export function notFound(data: string | object): Response {
+export function notFound(data: ResponseData): Response {
     return { code: HttpCode.NotFound, body: normalize(data) };
 }
