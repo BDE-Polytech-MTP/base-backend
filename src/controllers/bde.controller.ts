@@ -43,9 +43,9 @@ export class BDEController {
         }
 
         let bdeObject: BDE = {
-            name: result.value.name,
+            bdeName: result.value.name,
             specialties: result.value.specialties.map((spe) => ({ name: spe.name, minYear: spe.minYear, maxYear: spe.maxYear })),
-            uuid: uuid(),
+            bdeUUID: uuid(),
         };
 
         if (bdeObject.specialties.some((spe) => spe.minYear > spe.maxYear)) {
@@ -54,7 +54,7 @@ export class BDEController {
 
         const ownerUser: UnregisteredUser = {
             uuid: uuid(),
-            bdeUUID: bdeObject.uuid,
+            bdeUUID: bdeObject.bdeUUID,
             email: result.value.ownerEmail,
             permissions: [Permissions.MANAGE_BDE, Permissions.MANAGE_PERMISSIONS, Permissions.ADD_USER],
         };

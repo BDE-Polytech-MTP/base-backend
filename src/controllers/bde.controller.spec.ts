@@ -142,7 +142,7 @@ describe('BDE controller', () => {
         });
 
         it('should return an "internal server error" http code when mailing service rejects', async () => {
-            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, uuid: '' });
+            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, bdeUUID: '', bdeName: validBody.name });
             when(mailingServiceMock.sendRegistrationMail(anything())).thenReject(new Error(''));
 
             const result = await controller.create(validBody);
@@ -158,7 +158,7 @@ describe('BDE controller', () => {
         });
 
         it('should return a "created" http code when bde service resolves', async () => {
-            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, uuid: '' });
+            when(serviceMock.create(anything(), anything())).thenResolve({ ... validBody, bdeUUID: '', bdeName: validBody.name });
 
             const result = await controller.create(validBody);
             verify(serviceMock.create(anything(), anything())).once();
@@ -216,7 +216,7 @@ describe('BDE controller', () => {
         });
 
         it('should return "ok" http code if the bde service resolves', async () => {
-            when(serviceMock.findByUUID('the-uuid')).thenResolve({ name: 'Montpellier', specialties: [], uuid: 'the-uuid' });
+            when(serviceMock.findByUUID('the-uuid')).thenResolve({ bdeName: 'Montpellier', specialties: [], bdeUUID: 'the-uuid' });
 
             const result = await controller.getBDE('the-uuid');
             verify(serviceMock.findByUUID('the-uuid')).once();
