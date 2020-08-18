@@ -3,6 +3,7 @@ import { Booking } from "../models/booking.model";
 export enum BookingsErrorType {
     EVENT_NOT_EXISTS,
     USER_NOT_EXISTS,
+    BOOKING_NOT_EXISTS,
     INTERNAL
 };
 
@@ -17,6 +18,17 @@ export interface BookingsService {
      * @param booking The booking to create
      */
     create(booking: Booking): Promise<Booking>;
+
+    /**
+     * Finds the booking of the user with the given UUID for the event with the given UUID.
+     * 
+     * @param userUUID The user UUID
+     * @param eventUUID The event UUID
+     * 
+     * @throws BOOKING_NOT_EXISTS if no booking matching the request exists
+     * @throws INTERNAL in any other case
+     */
+    findOne(userUUID: string, eventUUID: string): Promise<Booking>;
 
     /**
      * Finds all bookings for the event with the given UUID.

@@ -1,4 +1,4 @@
-import { BookingsService, AuthenticationService, LoggingService, JWTClaims, EventsService, EventsErrorType, BookingsErrorType } from "../services";
+import { BookingsService, AuthenticationService, LoggingService, JWTClaims, EventsService, EventsErrorType, BookingsErrorType, EventsServiceError } from "../services";
 import * as httpCode from '../utils/http-code';
 import { ValidatorBuilder } from '../validation';
 import { Booking, Event } from "../models";
@@ -82,6 +82,60 @@ export class BookingsController  {
             return httpCode.internalServerError('Unable to create booking. Contact an adminstrator or retry later.');
         }
 
+    }
+
+    /**
+     * Handles a request that aims to retrieve a single booking.
+     * This method always resolves.
+     * 
+     * @param eventUUID The event UUID the booking is for
+     * @param userUUID The user UUID the bookign is from
+     * @param token The JWT to authenticate user
+     */
+    async findOne(eventUUID: string, userUUID: string, token?: string): Promise<httpCode.Response> {
+
+        /* If no token is given, we can't authenticate user */
+        if (!token) {
+            return httpCode.unauthorized('You must authenticate.');
+        }
+
+        /* Trying to authenticate user */
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.unauthorized('The given token is invalid.');
+        }
+
+        /* Fetching event related to the booking */
+        let event: Event;
+        try {
+            event = await this.eventsService.findByUUID(eventUUID);
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound('Event does not exists.');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Can\'t retrieve booking. Contact an adminstrator or retry later.');
+        }
+
+        /* Check access permission */
+        if (!canManageBooking(jwtClaims, { userUUID, bdeUUID: event.bdeUUID })) {
+            return httpCode.forbidden('You do not have permission to fetch this booking.');
+        }
+
+        /* Retrieve booking */
+        let booking: Booking;
+        try {
+            booking = await this.bookingService.findOne(userUUID, eventUUID);
+            return httpCode.ok(booking);
+        } catch (e) {
+            if (e.type === BookingsErrorType.BOOKING_NOT_EXISTS) {
+                return httpCode.notFound('This booking does not exist.');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to fecth booking. Contact an adminstrator or retry later.');
+        }
     }
 
 }
