@@ -105,8 +105,8 @@ describe('Events controller', () => {
             const event: Event = {
                 bdeUUID: 'bde-uuid',
                 isDraft: false,
-                name: 'event-name',
-                uuid: 'the-uuid'
+                eventName: 'event-name',
+                eventUUID: 'the-uuid'
             };
 
             when(authServiceMock.verifyToken('the-token')).thenResolve(jwtClaims);
@@ -153,8 +153,8 @@ describe('Events controller', () => {
 
         const fetchedEvent: Event = {
             bdeUUID: 'bde-uuid',
-            uuid: 'event-uuid',
-            name: 'Event name',
+            eventUUID: 'event-uuid',
+            eventName: 'Event name',
             isDraft: true,
         };
 
@@ -238,9 +238,9 @@ describe('Events controller', () => {
         };
 
         const eventToPatch: Event = {
-            uuid: 'event-uuid',
+            eventUUID: 'event-uuid',
             bdeUUID: 'bde-uuid',
-            name: 'Event name',
+            eventName: 'Event name',
             isDraft: false,
         };
 

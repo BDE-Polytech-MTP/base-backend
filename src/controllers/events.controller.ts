@@ -79,9 +79,9 @@ export class EventsController {
         }
 
         let event: Event = {
-            uuid: uuid(),
+            eventUUID: uuid(),
             bdeUUID: result.value.bde,
-            name: result.value.name,
+            eventName: result.value.name,
             isDraft: result.value.isDraft,
         };
 
@@ -184,9 +184,9 @@ export class EventsController {
         }
 
         let event: Event = {
-            uuid: eventUUID,
+            eventUUID: eventUUID,
             bdeUUID: result.value.bde,
-            name: result.value.name,
+            eventName: result.value.name,
             isDraft: result.value.isDraft,
         };
 
@@ -201,10 +201,10 @@ export class EventsController {
         /* Fetch event with the given UUID */
         let fetchedEvent: Event;
         try {
-            fetchedEvent = await this.eventsService.findByUUID(event.uuid);
+            fetchedEvent = await this.eventsService.findByUUID(event.eventUUID);
         } catch (e) {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
-                return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
+                return httpCode.notFound(`No event with uuid ${event.eventUUID} exists.`);
             }
             return httpCode.internalServerError('Unable to patch the event. Please contact and adminstrator or retry later.');
         }
@@ -224,7 +224,7 @@ export class EventsController {
             return httpCode.ok(event);
         } catch (e) {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
-                return httpCode.notFound(`No event with uuid ${event.uuid} exists.`);
+                return httpCode.notFound(`No event with uuid ${event.eventUUID} exists.`);
             } else if (e.type === EventsErrorType.BDE_UUID_NOT_EXISTS) {
                 return httpCode.badRequest(`No BDE with UUID ${event.bdeUUID} exists.`);
             }
