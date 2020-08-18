@@ -83,7 +83,7 @@ export class UsersController {
         }
 
         let unregisteredUser: UnregisteredUser = {
-            uuid: uuid(),
+            userUUID: uuid(),
             email: result.value.email,
             bdeUUID: result.value.bde,
             firstname: result.value.firstname,
@@ -128,7 +128,7 @@ export class UsersController {
         }
 
         let user: User = {
-            uuid: unregisteredUser.uuid,
+            userUUID: unregisteredUser.userUUID,
             bdeUUID: unregisteredUser.bdeUUID,
             email: unregisteredUser.email,
             permissions: unregisteredUser.permissions,

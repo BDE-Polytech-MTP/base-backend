@@ -154,7 +154,7 @@ describe('Users controller', () => {
         });
 
         it('should return "internal server error" http code when users service resolves and mailing service rejects with INTERNAL error', async () => {
-            const user: UnregisteredUser = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            const user: UnregisteredUser = { userUUID: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
             when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenReject(new Error(''));
@@ -166,7 +166,7 @@ describe('Users controller', () => {
         });
 
         it('should return "created" http code when users service and mailing service resolves', async () => {
-            const user: UnregisteredUser = { uuid: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            const user: UnregisteredUser = { userUUID: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
             when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenResolve();
@@ -296,7 +296,7 @@ describe('Users controller', () => {
         };
 
         const unregisteredUser: UnregisteredUser = {
-            uuid: validBody.uuid,
+            userUUID: validBody.uuid,
             bdeUUID: 'bde-uuid',
             email: 'valid-email@provider.tld',
             permissions: [],
@@ -426,7 +426,7 @@ describe('Users controller', () => {
 
         it('should return "internal server error" http code when token generation rejects.', async () => {
             const user: User = {
-                uuid: 'the-uuid',
+                userUUID: 'the-uuid',
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
                 firstname: 'Firstname',
@@ -451,7 +451,7 @@ describe('Users controller', () => {
 
         it('should return "ok" http code when token generation resolves.', async () => {
             const user: User = {
-                uuid: 'the-uuid',
+                userUUID: 'the-uuid',
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
                 firstname: 'Firstname',
@@ -506,7 +506,7 @@ describe('Users controller', () => {
             when(usersServiceMock.findUnregisteredByUUID('the-uuid')).thenResolve({
                 bdeUUID: 'bde-uuid',
                 email: 'valid-email@provider.tld',
-                uuid: 'the-uuid',
+                userUUID: 'the-uuid',
                 permissions: [],
             });
 

@@ -46,7 +46,7 @@ export class AuthenticationService {
     generateToken(user: User): Promise<string> {
         return new Promise((resolve, reject) => {
             const claims: SerializedJWTClaims = {
-                uuid: user.uuid,
+                uuid: user.userUUID,
                 bde_uuid: user.bdeUUID,
                 firstname: user.firstname,
                 lastname: user.lastname,

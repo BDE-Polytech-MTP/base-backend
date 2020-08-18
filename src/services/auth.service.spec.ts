@@ -22,7 +22,7 @@ describe('Authentication service', () => {
         lastname: 'the-lastname',
         specialtyName: 'the-specialty',
         specialtyYear: 1,
-        uuid: 'the-uuid',
+        userUUID: 'the-uuid',
         permissions: [],
     };
 
@@ -77,7 +77,7 @@ describe('Authentication service', () => {
                 bdeUUID: user.bdeUUID,
                 firstname: user.firstname,
                 lastname: user.lastname,
-                uuid: user.uuid,
+                uuid: user.userUUID,
                 permissions: [],
             });
         });

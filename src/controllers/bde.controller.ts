@@ -53,7 +53,7 @@ export class BDEController {
         }
 
         const ownerUser: UnregisteredUser = {
-            uuid: uuid(),
+            userUUID: uuid(),
             bdeUUID: bdeObject.bdeUUID,
             email: result.value.ownerEmail,
             permissions: [Permissions.MANAGE_BDE, Permissions.MANAGE_PERMISSIONS, Permissions.ADD_USER],

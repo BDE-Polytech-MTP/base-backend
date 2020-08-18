@@ -4,7 +4,7 @@
 export interface User {
 
     /** User unique identifier */
-    uuid: string;
+    userUUID: string;
 
     /* User firstname */
     firstname: string;
@@ -38,7 +38,7 @@ export interface User {
 export interface UnregisteredUser {
 
     /** User unique identifier */
-    uuid: string;
+    userUUID: string;
 
     /* User firstname */
     firstname?: string;
