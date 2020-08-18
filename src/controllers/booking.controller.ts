@@ -164,9 +164,6 @@ export class BookingsController  {
         try {
             booking = await this.bookingService.findBookingsForUser(userUUID)
         } catch (e) {
-            if (e.type === BookingsErrorType.BOOKING_NOT_EXISTS) {
-                return httpCode.notFound('This booking does not exist.');
-            }
             this.loggingService.error(e);
             return httpCode.internalServerError('Unable to fecth booking. Contact an adminstrator or retry later.');
         }
