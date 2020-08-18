@@ -1,4 +1,4 @@
-import { BookingsService, AuthenticationService, LoggingService, JWTClaims, EventsService, EventsErrorType, BookingsErrorType, EventsServiceError } from "../services";
+import { BookingsService, AuthenticationService, LoggingService, JWTClaims, EventsService, EventsErrorType, BookingsErrorType } from "../services";
 import * as httpCode from '../utils/http-code';
 import { ValidatorBuilder } from '../validation';
 import { Booking, Event } from "../models";

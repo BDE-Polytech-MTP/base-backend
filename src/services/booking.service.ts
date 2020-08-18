@@ -51,7 +51,7 @@ export interface BookingsService {
  */
 export class BookingsServiceError extends Error {
 
-    constructor(message: string, public type: BDEErrorType) {
+    constructor(message: string, public type: BookingsErrorType) {
         super(message);
     }
 
