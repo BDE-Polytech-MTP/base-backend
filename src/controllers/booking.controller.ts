@@ -25,7 +25,14 @@ export class BookingsController  {
      * @param body The request body
      * @param token The JWT token to identify user
      */
-    async create(body: object | null, token?: string): Promise<httpCode.Response> {
+    async create(eventUUID: string, userUUID: string, body: object | null, token?: string): Promise<httpCode.Response> {
+
+        /* Merge eventUUID and userUUID in request body */
+        body = {
+            ... (body || {}),
+            user: userUUID,
+            event: eventUUID,
+        };
 
         /* If no token were given, we can authenticate user  */
         if (!token) {
