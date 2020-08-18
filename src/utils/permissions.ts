@@ -1,15 +1,6 @@
 import { Permissions, Permission } from '../models/user.model';
 
 /**
- * Returns the highest permission level of the given user.
- * 
- * @param user The user to find the highest permissions level of
- */
-export function findPermissionLevel(user: { permissions: Permission[] }): number {
-    return Math.max(0, ... user.permissions.map(p => p.level));
-}
-
-/**
  * Checks whether or not the given source user can manage permissions
  * of the target user.
  * 
@@ -31,11 +22,8 @@ export function canManagePermissions(source: { bdeUUID: string, permissions: Per
     if (source.bdeUUID !== target.bdeUUID) {
         return false;
     }
-
-    const sourceLevel = findPermissionLevel(source);
-    const targetLevel = findPermissionLevel(target);
     
-    return sourceLevel > targetLevel;
+    return !target.permissions.includes(Permissions.MANAGE_PERMISSIONS) || source.permissions.includes(Permissions.MANAGE_BDE);
 }
 
 /**

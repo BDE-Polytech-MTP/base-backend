@@ -70,16 +70,6 @@ export interface Permission {
     name: string;
 
     /**
-     * Level of the permission, the higher this level is, the more power the user owns. It governs which user can affect which user.
-     * 
-     * Example : 
-     *  An user with the permission to modify permissions of an other user will only be able to modify permissions for an user
-     *  who has a "highest permission level" lower than its own. The "highest permission level" is the maximum level found
-     *  in all permissions owned by the user.
-     */
-    level: number;
-
-    /**
      * Whether or not this permission is modifiable by an user having permission to modify users' permissions.
      */
     modifiable: boolean;
@@ -99,7 +89,6 @@ export const Permissions: {
      */
     ALL: {
         name: 'all',
-        level: 9999,
         modifiable: false,
     },
 
@@ -108,7 +97,6 @@ export const Permissions: {
      */
     ADD_USER: {
         name: 'add_user',
-        level: 100,
         modifiable: true,
     },
 
@@ -117,7 +105,6 @@ export const Permissions: {
      */
     MANAGE_PERMISSIONS: {
         name: 'manage_permissions',
-        level: 500,
         modifiable: true,
     },
 
@@ -126,7 +113,6 @@ export const Permissions: {
      */
     MANAGE_BDE: {
         name: 'manage_bde',
-        level: 1000,
         modifiable: false,
     },
 
@@ -135,7 +121,6 @@ export const Permissions: {
      */
     MANAGE_EVENTS: {
         name: 'manage_events',
-        level: 100,
         modifiable: true,
     },
 
