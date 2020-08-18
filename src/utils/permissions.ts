@@ -69,6 +69,17 @@ export function canManageEvents(source: { bdeUUID: string, permissions: Permissi
 }
 
 /**
+ * Checks whether or not, the given user can (soft) manage the booking.
+ * Soft managing excludes all administrative actions that can be performed on a booking (mark as payed, delete booking, etc ...).
+ * 
+ * @param source The user that wants to manage the given booking
+ * @param target The booking to manage
+ */
+export function canManageBooking(source: { uuid: string, bdeUUID: string, permissions: Permission[] }, target: { userUUID: string, bdeUUID: string }) {
+    return source.uuid === target.userUUID || canManageEvents(source, target.bdeUUID);
+}
+
+/**
  * Returns an array containing all permissions having their name contained in the given
  * string array. 
  * 

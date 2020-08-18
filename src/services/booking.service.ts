@@ -1,5 +1,11 @@
 import { Booking } from "../models/booking.model";
 
+export enum BookingsErrorType {
+    EVENT_NOT_EXISTS,
+    USER_NOT_EXISTS,
+    INTERNAL
+};
+
 /**
  * Bookings access service
  */
@@ -25,5 +31,16 @@ export interface BookingsService {
      * @param userUUID The UUID of the user to find bookings of
      */
     findBookingsForUser(userUUID: string): Promise<Booking[]>;
+
+}
+
+/**
+ * An error class that allows to specify the type of error encountered.
+ */
+export class BookingsServiceError extends Error {
+
+    constructor(message: string, public type: BDEErrorType) {
+        super(message);
+    }
 
 }
