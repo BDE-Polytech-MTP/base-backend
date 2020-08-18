@@ -145,4 +145,36 @@ export class BookingsController  {
         }
     }
 
+    async findUserBookings(userUUID: string, token?: string): Promise<httpCode.Response> {
+        /* If no token is given, we can't authenticate user */
+        if (!token) {
+            return httpCode.unauthorized('You must authenticate.');
+        }
+
+        /* Trying to authenticate user */
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.unauthorized('The given token is invalid.');
+        }
+
+        /* Retrieve bookings */
+        let booking: (Booking & Event)[];
+        try {
+            booking = await this.bookingService.findBookingsForUser(userUUID)
+        } catch (e) {
+            if (e.type === BookingsErrorType.BOOKING_NOT_EXISTS) {
+                return httpCode.notFound('This booking does not exist.');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to fecth booking. Contact an adminstrator or retry later.');
+        }
+
+        /* Filter bookings that cannot be managed by the requesting user */
+        booking = booking.filter((booking) => canManageBooking(jwtClaims, { userUUID: booking.userUUID, bdeUUID: booking.bdeUUID }));
+
+        return httpCode.ok(booking);
+    }
+
 }
