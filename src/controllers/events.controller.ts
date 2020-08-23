@@ -105,6 +105,7 @@ export class EventsController {
             if (e.type === EventsErrorType.BDE_UUID_NOT_EXISTS) {
                 return httpCode.badRequest('Given bde UUID does not exist.');
             }
+            this.loggingService.error(e);
             return httpCode.internalServerError('Unable to create an event. Contact an administrator or retry later.');
         }
 
@@ -126,6 +127,7 @@ export class EventsController {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
                 return httpCode.notFound('Not found');
             }
+            this.loggingService.error(e);
             return httpCode.internalServerError('Unable to fetch this event. Contact an adminstrator or retry later.');
         }
 
@@ -206,6 +208,7 @@ export class EventsController {
             if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
                 return httpCode.notFound(`No event with uuid ${event.eventUUID} exists.`);
             }
+            this.loggingService.error(e);
             return httpCode.internalServerError('Unable to patch the event. Please contact and adminstrator or retry later.');
         }
 
@@ -228,6 +231,7 @@ export class EventsController {
             } else if (e.type === EventsErrorType.BDE_UUID_NOT_EXISTS) {
                 return httpCode.badRequest(`No BDE with UUID ${event.bdeUUID} exists.`);
             }
+            this.loggingService.error(e);
             return httpCode.internalServerError('Unable to patch event. Contact an administrator or retry later.');
         }
 
