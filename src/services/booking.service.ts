@@ -4,6 +4,7 @@ export enum BookingsErrorType {
     EVENT_NOT_EXISTS,
     USER_NOT_EXISTS,
     BOOKING_NOT_EXISTS,
+    BOOKING_ALREADY_EXISTS,
     INTERNAL
 };
 
@@ -16,6 +17,11 @@ export interface BookingsService {
      * Creates the given booking.
      * 
      * @param booking The booking to create
+     * 
+     * @throws BOOKING_ALREADY_EXISTS if a booking for the given event by the given user already exists
+     * @throws EVENT_NOT_EXISTS if no event with the given UUID exists
+     * @throws USER_NOT_EXISTS if no user with the given UUID exists
+     * @throws INTERNAL in any other case
      */
     create(booking: Booking): Promise<Booking>;
 

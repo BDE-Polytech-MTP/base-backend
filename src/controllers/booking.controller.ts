@@ -84,6 +84,8 @@ export class BookingsController  {
                 return httpCode.badRequest('Specified bde UUID is invalid.');
             } else if (e.type === BookingsErrorType.USER_NOT_EXISTS) {
                 return httpCode.badRequest('Specified user UUID is invalid.');
+            } else if (e.type === BookingsErrorType.BOOKING_ALREADY_EXISTS) {
+                return httpCode.badRequest('This booking already exists.');
             }
             this.loggingService.error(e);
             return httpCode.internalServerError('Unable to create booking. Contact an adminstrator or retry later.');
