@@ -1,6 +1,6 @@
 {
   "name": "@bde-polytech-mtp/base-backend",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -14,7 +14,6 @@
   "scripts": {
     "test": "mocha --reporter spec -r chai/register-expect --require ts-node/register 'src/**/*.spec.ts'",
     "build": "tsc",
-    "postinstall": "tsc --build tsconfig.install.json",
     "coverage": "nyc npm run test",
     "test-ci": "nyc --reporter=json npm run test"
   },
