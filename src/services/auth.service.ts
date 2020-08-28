@@ -32,8 +32,13 @@ export class AuthenticationService {
      */
     async authenticate(user_email: string, raw_password: string): Promise<User> {
         const user = await this.usersService.findByEmail(user_email);
-        if (user.password === this.hashStrategy.hash(raw_password)) {
-            return user;
+        try {
+            const match = await this.hashStrategy.check(raw_password, user.password)
+            if (match) {
+                return user;
+            }
+        } catch (_) {
+            throw new Error('Unable to compare passwords');
         }
         throw new Error('Password don\'t match.');
     }
@@ -94,7 +99,7 @@ export class AuthenticationService {
      * 
      * @param rawPassword The plain password
      */
-    hashPassword(rawPassword: string): string {
+    hashPassword(rawPassword: string): Promise<string> {
         return this.hashStrategy.hash(rawPassword);
     }
 

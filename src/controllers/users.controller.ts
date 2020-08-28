@@ -127,6 +127,14 @@ export class UsersController {
             return httpCode.internalServerError('Unable to finish registration of an user. Contact an administrator or retry later.');
         }
 
+        let hashedPassword: string;
+        try {
+            hashedPassword = await this.authService.hashPassword(result.value.password);
+        } catch (e) {
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Contact an adminstrator or retry later.');
+        }
+
         let user: User = {
             userUUID: unregisteredUser.userUUID,
             bdeUUID: unregisteredUser.bdeUUID,
@@ -137,7 +145,7 @@ export class UsersController {
             lastname: result.value.lastname,
             specialtyName: result.value.specialty,
             specialtyYear: result.value.year,
-            password: this.authService.hashPassword(result.value.password),
+            password: hashedPassword,
         };
 
         try {
