@@ -12,6 +12,7 @@ export class BDEController {
                                         name: string,
                                         ownerEmail: string,
                                         specialties: { name: string, minYear: number, maxYear: number}[]
+                                        token: string,
                                     }>()
                                     .requires("name").toBeString().withMinLength(1).withMaxLength(30)
                                     .requires('ownerEmail').toBeString().matching(BDEController.EMAIL_REGEX)
@@ -21,7 +22,9 @@ export class BDEController {
                                             .requires('minYear').toBeInteger().withMinValue(1).withMaxValue(5)
                                             .requires('maxYear').toBeInteger().withMinValue(1).withMaxValue(5)
                                             .build()
-                                    ).build();
+                                    )
+                                    .optional('token').toBeString().withMinLength(1)
+                                    .build();
 
     constructor(
         private bdeService: BDEService,
@@ -36,10 +39,14 @@ export class BDEController {
      * @param requestBody The received request body
      */
     async create(requestBody: object | null): Promise<httpCode.Response> {
-        // TODO: Check authorization
         let result = BDEController.BDE_VALIDATOR.validate(requestBody);
         if (!result.valid) {
             return httpCode.badRequest(result.error.message);
+        }
+
+        /* If a token is required and that given token invalid, we reject */
+        if (process.env.BDE_CREATION_TOKEN && process.env.BDE_CREATION_TOKEN !== result.value.token) {
+            return httpCode.unauthorized('The specified token is invalid.');
         }
 
         let bdeObject: BDE = {
