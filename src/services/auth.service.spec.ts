@@ -12,7 +12,7 @@ const { expect } = chai;
 
 describe('Authentication service', () => {
 
-    const hashStrategy: HashStrategy = { hash: (data) => data };
+    const hashStrategy: HashStrategy = { hash: (data) => Promise.resolve(data), check: async (plain, hashed) => plain === hashed };
 
     let user: User = {
         email: 'the-email',
@@ -52,14 +52,14 @@ describe('Authentication service', () => {
             expect(service.authenticate('the-email', 'the-password')).to.be.fulfilled;
         });
 
-        it("should call hash function on given password", async () => {
+        it("should call check function on given password", async () => {
             let usersService = mock<UsersService>();
             when(usersService.findByEmail('the-email')).thenResolve(user);
             const hashSpy = spy(hashStrategy);
             let service = new AuthenticationService(instance(usersService), hashStrategy);
 
             await service.authenticate('the-email', 'the-password');
-            verify(hashSpy.hash('the-password')).once();
+            verify(hashSpy.check('the-password', anyString())).once();
         });
 
     });

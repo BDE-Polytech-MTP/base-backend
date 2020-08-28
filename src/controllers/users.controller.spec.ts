@@ -22,7 +22,7 @@ describe('Users controller', () => {
         reset(usersServiceMock);
         reset(mailingServiceMock);
         reset(authServiceMock);
-        when(authServiceMock.hashPassword('thepassword')).thenReturn('thepassword');
+        when(authServiceMock.hashPassword('thepassword')).thenResolve('thepassword');
     });
 
     describe('create', () => {
