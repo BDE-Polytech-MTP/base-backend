@@ -1,5 +1,4 @@
 {
-    "extends": "./tsconfig.install.json",
     "compilerOptions": {
       "module": "CommonJS",
       "target": "ES2019",
@@ -12,7 +11,9 @@
       "noImplicitAny": true,
       "noImplicitThis": true,
       "noImplicitReturns": true,
-      "allowUnreachableCode": true
+      "allowUnreachableCode": true,
+      "strictPropertyInitialization": true,
+      "strictNullChecks": true
     },
     "include": [
       "src/**/*"
