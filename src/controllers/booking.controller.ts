@@ -2,13 +2,15 @@ import { BookingsService, AuthenticationService, LoggingService, JWTClaims, Even
 import * as httpCode from '../utils/http-code';
 import { ValidatorBuilder } from '../validation';
 import { Booking, Event } from "../models";
-import { canManageBooking } from "../utils/permissions";
+import { canManageBooking, canManageEvents } from "../utils/permissions";
+import { DateTime } from 'luxon';
 
 export class BookingsController  {
 
-    private static BOOKING_VALIDATOR = ValidatorBuilder.new<{ user: string, event: string }>()
+    private static BOOKING_VALIDATOR = ValidatorBuilder.new<{ user: string, event: string, force?: boolean }>()
                                                         .requires('user').toBeString().withMinLength(1).withMaxLength(36)
                                                         .requires('event').toBeString().withMinLength(1).withMaxLength(36)
+                                                        .optional('force').toBeBoolean()
                                                         .build();
 
     constructor(
@@ -17,6 +19,19 @@ export class BookingsController  {
         private authService: AuthenticationService,
         private loggingService: LoggingService
     ) {}
+
+    canBookNow(event: Event) {
+        const now = DateTime.local();
+        if (event.bookingStart && event.bookingStart > now) {
+            return false;
+        }
+
+        if (event.bookingEnd && event.bookingEnd < now) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Handles a request that aims to create a booking.
@@ -73,6 +88,14 @@ export class BookingsController  {
         /* Checking whether or not the user can create this booking */
         if (!canManageBooking(jwtClaims, { userUUID: booking.eventUUID, bdeUUID: event.bdeUUID })) {
             return httpCode.forbidden('You do not have the permission to create this booking.');
+        }
+
+        if (result.value.force && !canManageEvents(jwtClaims, event.bdeUUID)) {
+            return httpCode.forbidden('You do not have permission to force booking.');
+        }
+        
+        if (!result.value.force && !this.canBookNow(event)) {
+            return httpCode.forbidden('It is not possible to book this event now.');
         }
 
         /* Creating the booking */
