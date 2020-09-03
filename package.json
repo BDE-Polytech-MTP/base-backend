@@ -1,6 +1,6 @@
 {
   "name": "@bde-polytech-mtp/base-backend",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -24,15 +24,15 @@
     "@types/chai": "^4.2.12",
     "@types/chai-as-promised": "^7.1.3",
     "@types/jsonwebtoken": "^8.5.0",
-    "@types/luxon": "^1.24.3",
+    "@types/luxon": "^1.24.4",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^10.17.28",
+    "@types/node": "^10.17.29",
     "@types/uuid": "^8.3.0",
-    "@typescript-eslint/eslint-plugin": "^3.9.0",
-    "@typescript-eslint/parser": "^3.9.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^7.6.0",
+    "eslint": "^7.8.1",
     "mocha": "^7.1.2",
     "nyc": "^15.1.0",
     "ts-mockito": "^2.6.1",
@@ -42,7 +42,7 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
-    "luxon": "^1.24.1",
+    "luxon": "^1.25.0",
     "uuid": "^8.3.0"
   }
 }
