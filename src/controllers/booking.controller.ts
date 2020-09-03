@@ -70,7 +70,7 @@ export class BookingsController  {
 
         let booking: Booking = {
             eventUUID: result.value.event,
-            userUUID: result.value.event,
+            userUUID: result.value.user,
         };
 
         /* Retrieving event */
