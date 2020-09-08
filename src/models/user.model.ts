@@ -30,6 +30,9 @@ export interface User {
     /** User permissions */
     permissions: Permission[];
 
+    /** Whether or not the user is a member */
+    member: boolean;
+
 }
 
 /**
@@ -54,6 +57,9 @@ export interface UnregisteredUser {
 
     /** User permissions */
     permissions: Permission[];
+
+    /** Whether or not the user is a member */
+    member: boolean;
 
 }
 

@@ -154,7 +154,13 @@ describe('Users controller', () => {
         });
 
         it('should return "internal server error" http code when users service resolves and mailing service rejects with INTERNAL error', async () => {
-            const user: UnregisteredUser = { userUUID: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            const user: UnregisteredUser = { 
+                userUUID: 'user-uuid', 
+                bdeUUID: validBody.bde, 
+                email: validBody.email, 
+                permissions: [],
+                member: false,
+            };
             when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenReject(new Error(''));
@@ -166,7 +172,13 @@ describe('Users controller', () => {
         });
 
         it('should return "created" http code when users service and mailing service resolves', async () => {
-            const user: UnregisteredUser = { userUUID: 'user-uuid', bdeUUID: validBody.bde, email: validBody.email, permissions: [] };
+            const user: UnregisteredUser = { 
+                userUUID: 'user-uuid', 
+                bdeUUID: validBody.bde, 
+                email: validBody.email, 
+                permissions: [],
+                member: false,
+            };
             when(authServiceMock.verifyToken('the-token')).thenResolve(validClaims);
             when(usersServiceMock.create(anything())).thenResolve(user);
             when(mailingServiceMock.sendRegistrationMail(user)).thenResolve();
@@ -300,7 +312,8 @@ describe('Users controller', () => {
             bdeUUID: 'bde-uuid',
             email: 'valid-email@provider.tld',
             permissions: [],
-        }
+            member: false,
+        };
 
         const user: User = {
             ... unregisteredUser,
@@ -435,6 +448,7 @@ describe('Users controller', () => {
                 specialtyName: 'IG',
                 specialtyYear: 2,
                 permissions: [],
+                member: false,
             };
             when(authServiceMock.authenticate('valid-email@provider.tld', 'thepassword')).thenResolve(user);
             when(authServiceMock.generateToken(deepEqual(user))).thenReject(new Error(''));
@@ -460,6 +474,7 @@ describe('Users controller', () => {
                 specialtyName: 'IG',
                 specialtyYear: 2,
                 permissions: [],
+                member: false,
             };
             when(authServiceMock.authenticate('valid-email@provider.tld', 'thepassword')).thenResolve(user);
             when(authServiceMock.generateToken(deepEqual(user))).thenResolve('the-token');
@@ -508,6 +523,7 @@ describe('Users controller', () => {
                 email: 'valid-email@provider.tld',
                 userUUID: 'the-uuid',
                 permissions: [],
+                member: false,
             });
 
             const result = await controller.getUnregisteredUser('the-uuid');

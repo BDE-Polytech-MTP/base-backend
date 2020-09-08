@@ -89,6 +89,7 @@ export class UsersController {
             firstname: result.value.firstname,
             lastname: result.value.lastname,
             permissions: [],
+            member: false,
         };
 
         try {
@@ -140,6 +141,7 @@ export class UsersController {
             bdeUUID: unregisteredUser.bdeUUID,
             email: unregisteredUser.email,
             permissions: unregisteredUser.permissions,
+            member: unregisteredUser.member,
 
             firstname: result.value.firstname,
             lastname: result.value.lastname,

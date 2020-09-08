@@ -24,6 +24,7 @@ describe('Authentication service', () => {
         specialtyYear: 1,
         userUUID: 'the-uuid',
         permissions: [],
+        member: false,
     };
 
     describe('authenticate method', () => {    
