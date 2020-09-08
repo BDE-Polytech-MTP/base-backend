@@ -218,4 +218,44 @@ export class UsersController {
         }
     }
 
+    /**
+     * Handles a request that aims to fetch all users of a BDE.
+     * This method always resolves.
+     * 
+     * @param bdeUUID The UUID of the BDE to get all users of
+     * @param token The JWT to authenticate user
+     */
+    async listUsersForBDE(bdeUUID: string, token?: string): Promise<httpCode.Response> {
+        
+        if (!token) {
+            return httpCode.unauthorized('You must provide a token.');
+        }
+
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.forbidden('The provided token is invalid.');
+        }
+
+        if (!canAddUser(jwtClaims, bdeUUID)) {
+            return httpCode.forbidden('You do not have permission to fetch users for this BDE.');
+        }
+
+        let users: (User | UnregisteredUser)[];
+        try {
+            users = await this.usersService.findAll(bdeUUID);
+        } catch (e) {
+            if (e.type === UsersErrorType.BDE_NOT_EXISTS) {
+                return httpCode.notFound('This BDE does not exists');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Contact an adminstrator or retry later.');
+        }
+
+        const mappedUsers = users.map(user => hide({ ... user, permissions: user.permissions.map(p => p.name) }, 'password'));
+
+        return httpCode.ok(mappedUsers);
+    }
+
 }

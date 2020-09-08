@@ -83,6 +83,16 @@ export interface UsersService {
      */
     delete(uuid: string): Promise<void>;
 
+    /**
+     * Finds all users.
+     * 
+     * @param bdeUUID if provided, only fetch user from the this BDE
+     * 
+     * @throws BDE_NOT_EXISTS if a BDE uuid is provided and no BDE with the given UUID exists
+     * @throws INTERNAL if any other case
+     */
+    findAll(bdeUUID?: string): Promise<(User | UnregisteredUser)[]>;
+
 }
 
 /**
