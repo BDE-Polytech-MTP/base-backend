@@ -51,7 +51,7 @@ export interface UsersService {
     findUnregisteredByUUID(uuid: string): Promise<UnregisteredUser>;
 
     /**
-     * Finds the registered user with the given UUID.
+     * Finds the registered or unregistered user with the given UUID.
      * 
      * @returns the user with the given UUID if it exists
      * @throws USER_NOT_EXISTS error if no user with the given UUID exists
@@ -59,10 +59,10 @@ export interface UsersService {
      * 
      * @param uuid The user UUID
      */
-    findByUUID(uuid: string): Promise<User>;
+    findByUUID(uuid: string): Promise<User | UnregisteredUser>;
 
     /**
-     * Finds the registered user with the given email.
+     * Finds the user with the given email.
      * 
      * @returns the user with the given email if it exists
      * @throws USER_NOT_EXISTS if no user with the given email exists
