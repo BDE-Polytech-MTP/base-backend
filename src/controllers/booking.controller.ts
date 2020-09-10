@@ -86,7 +86,7 @@ export class BookingsController  {
         }
 
         /* Checking whether or not the user can create this booking */
-        if (!canManageBooking(jwtClaims, { userUUID: booking.eventUUID, bdeUUID: event.bdeUUID })) {
+        if (!canManageBooking(jwtClaims, { userUUID: booking.userUUID, bdeUUID: event.bdeUUID })) {
             return httpCode.forbidden('You do not have the permission to create this booking.');
         }
 
