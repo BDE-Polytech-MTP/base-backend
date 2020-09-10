@@ -260,4 +260,42 @@ export class UsersController {
         return httpCode.ok(mappedUsers);
     }
 
+    /**
+     * Handles a request that aims to fetch an user from its UUID.
+     * This method always resolves.
+     * 
+     * @param uuid The user UUID to fetch
+     * @param token The JWT to authenticate the user
+     */
+    async getUser(uuid: string, token?: string): Promise<httpCode.Response> {
+
+        if (!token) {
+            return httpCode.unauthorized('You must authenticate.');
+        }
+
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.forbidden('The given token is invalid.');
+        }
+
+        let user: User | UnregisteredUser;
+        try {
+            user = await this.usersService.findByUUID(uuid);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.notFound('No user with the given UUID exists.');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to fetch user. Contact an adminstrator or retry later.');
+        }
+
+        if (canAddUser(jwtClaims, user.bdeUUID) || jwtClaims.uuid === user.userUUID) {
+            return httpCode.ok(hide(user, 'password'));
+        }
+
+        return httpCode.ok(hide(user, 'password', 'email', 'permissions', 'member'));
+    }
+
 }
