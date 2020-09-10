@@ -223,7 +223,7 @@ export class BookingsController  {
         }
 
         /* Filter bookings that cannot be managed by the requesting user */
-        booking = booking.filter((booking) => canManageBooking(jwtClaims, { userUUID: booking.userUUID, bdeUUID: booking.bdeUUID }));
+        // booking = booking.filter((booking) => canManageBooking(jwtClaims, { userUUID: booking.userUUID, bdeUUID: booking.bdeUUID }));
 
         return httpCode.ok(booking);
     }

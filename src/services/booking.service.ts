@@ -8,6 +8,14 @@ export enum BookingsErrorType {
     INTERNAL
 };
 
+export interface PartialUser {
+    userUUID: string;
+    firstname: string;
+    lastname: string;
+    specialtyName: string;
+    specialtyYear: number;
+}
+
 /**
  * Bookings access service
  */
@@ -34,21 +42,21 @@ export interface BookingsService {
      * @throws BOOKING_NOT_EXISTS if no booking matching the request exists
      * @throws INTERNAL in any other case
      */
-    findOne(userUUID: string, eventUUID: string): Promise<Booking & Event>;
+    findOne(userUUID: string, eventUUID: string): Promise<Booking & Event & PartialUser>;
 
     /**
      * Finds all bookings for the event with the given UUID.
      * 
      * @param eventUUID The UUID of the event to find bookings for
      */
-    findBookingsForEvent(eventUUID: string): Promise<(Booking & Event)[]>;
+    findBookingsForEvent(eventUUID: string): Promise<(Booking & Event & PartialUser)[]>;
 
     /**
      * Finds all bookings of the user with the given UUID.
      * 
      * @param userUUID The UUID of the user to find bookings of
      */
-    findBookingsForUser(userUUID: string): Promise<(Booking & Event)[]>;
+    findBookingsForUser(userUUID: string): Promise<(Booking & Event & PartialUser)[]>;
 
 }
 
