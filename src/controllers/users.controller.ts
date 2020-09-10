@@ -292,7 +292,11 @@ export class UsersController {
         }
 
         if (canAddUser(jwtClaims, user.bdeUUID) || jwtClaims.uuid === user.userUUID) {
-            return httpCode.ok(hide(user, 'password'));
+            const hidedUser = hide(user, 'password');
+            return httpCode.ok({
+                ... hidedUser,
+                permissions: hidedUser.permissions.map(p => p.name),
+            });
         }
 
         return httpCode.ok(hide(user, 'password', 'email', 'permissions', 'member'));
