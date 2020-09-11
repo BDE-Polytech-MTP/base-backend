@@ -84,7 +84,7 @@ export class UsersController {
 
         let unregisteredUser: UnregisteredUser = {
             userUUID: uuid(),
-            email: result.value.email,
+            email: result.value.email.toLowerCase(),
             bdeUUID: result.value.bde,
             firstname: result.value.firstname,
             lastname: result.value.lastname,
@@ -178,7 +178,7 @@ export class UsersController {
 
         let user: User;
         try {
-            user = await this.authService.authenticate(result.value.email, result.value.password);
+            user = await this.authService.authenticate(result.value.email.toLowerCase(), result.value.password);
         } catch (e) {
             if (e.type === UsersErrorType.INTERNAL) {
                 this.loggingService.error('Unable to authenticate user.', e);
