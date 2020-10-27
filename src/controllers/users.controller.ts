@@ -11,11 +11,12 @@ export class UsersController {
     private static EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
     private static UNREGISTERED_USER_VALIDATOR = ValidatorBuilder
-                                            .new<{ email: string, bde: string, firstname?: string, lastname?: string}>()
+                                            .new<{ email: string, bde: string, firstname?: string, lastname?: string, member?: boolean }>()
                                             .requires("email").toBeString().matching(UsersController.EMAIL_REGEX)
                                             .requires("bde").toBeString().withMinLength(1)
                                             .optional("firstname").toBeString().withMinLength(2).withMaxLength(15)
                                             .optional("lastname").toBeString().withMinLength(2).withMaxLength(15)
+                                            .optional("member").toBeBoolean()
                                             .build();
 
     private static USER_VALIDATOR = ValidatorBuilder
@@ -89,7 +90,7 @@ export class UsersController {
             firstname: result.value.firstname,
             lastname: result.value.lastname,
             permissions: [],
-            member: false,
+            member: result.value.member || false,
         };
 
         try {
@@ -99,6 +100,9 @@ export class UsersController {
         } catch (e) {
             if (e.type === UsersErrorType.USER_ALREADY_EXISTS) {
                 return httpCode.badRequest('Email already used.');
+            }
+            if (e.type === UsersErrorType.BDE_NOT_EXISTS) {
+                return httpCode.badRequest("BDE UUID is invalid.");
             }
             this.loggingService.error('Unable to create user.', e);
             return httpCode.internalServerError('Unable to create an user. Contact an administrator or try again later.');

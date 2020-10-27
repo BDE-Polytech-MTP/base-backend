@@ -21,6 +21,7 @@ export interface UsersService {
      * 
      * @return the given unregistered user if creation is a success.
      * @throws USER_ALREADY_EXISTS if a user with the given UUID or the given email already exists
+     * @throws BDE_NOT_EXISTS if no BDE with the given UUID exists
      * @throws INTERNAL error in any other case
      * 
      * @param user The user to create
