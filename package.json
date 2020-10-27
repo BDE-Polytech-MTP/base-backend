@@ -1,6 +1,6 @@
 {
   "name": "@bde-polytech-mtp/base-backend",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": {
     "type": "git",
     "url": "ssh://git@github.com/bde-polytech-mtp/base-backend"
