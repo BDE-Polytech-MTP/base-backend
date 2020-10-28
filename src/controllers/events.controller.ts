@@ -238,6 +238,57 @@ export class EventsController {
     }
 
     /**
+     * Deletes the event with the given UUID.
+     * 
+     * @param eventUUID The UUID of the event to delete
+     * @param token The JWT allowing to identify the user
+     */
+    async deleteEvent(eventUUID: string, token?: string): Promise<httpCode.Response> {
+        
+        /* No user token were given, we return an unauthorized error */
+        if (!token) {
+            return httpCode.unauthorized('You must be connected.');
+        }
+
+        /* Try to authenticate the user from the given token */
+        let claims: JWTClaims;
+        try {
+            claims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.unauthorized('The given token is invalid.');
+        }
+
+        /* Fetch event with the given UUID */
+        let fetchedEvent: Event;
+        try {
+            fetchedEvent = await this.eventsService.findByUUID(eventUUID);
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound(`No event with uuid ${eventUUID} exists.`);
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to delete the event. Please contact and adminstrator or retry later.');
+        }
+
+        /* Checking user permission */
+        if (!canManageEvents(claims, fetchedEvent.bdeUUID)) {
+            return httpCode.forbidden('You do not have the permission to patch this event.');
+        }
+
+        try {
+            await this.eventsService.delete(eventUUID);
+            return httpCode.noContent();
+        } catch (e) {
+            if (e.type === EventsErrorType.EVENT_NOT_EXISTS) {
+                return httpCode.notFound(`No event with uuid ${eventUUID} exists.`);
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to delete event. Contact an administrator or retry later.');
+        }
+
+    }
+
+    /**
      * Handles a request that aims to list all known events.
      * 
      * @param token The JWT to identify user

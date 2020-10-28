@@ -4,6 +4,7 @@
 export enum HttpCode {
     Ok = 200,
     Created = 201,
+    NotContent = 204,
     BadRequest = 400,
     Unauthorized = 401,
     Forbidden = 403,
@@ -96,4 +97,11 @@ export function internalServerError(data: ResponseData): Response {
  */
 export function notFound(data: ResponseData): Response {
     return { code: HttpCode.NotFound, body: normalize(data) };
+}
+
+/**
+ * Creates a 'not content' http response with no body.
+ */
+export function noContent(): Response {
+    return { code: HttpCode.NotContent, body: {} };
 }
