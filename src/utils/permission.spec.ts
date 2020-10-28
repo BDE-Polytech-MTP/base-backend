@@ -1,27 +1,27 @@
 import { expect } from 'chai';
-import { canAddUser, canManagePermissions, canManageEvents } from './permissions';
+import { canManageUser, canManagePermissions, canManageEvents } from './permissions';
 import { Permissions } from '../models';
 
 describe('Permissions', () => {
 
-    describe('canAddUser', () => {
+    describe('canManageUser', () => {
         
         it('should return true if user has permission ALL', () => {
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'bde-uuid')).to.be.true;
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'other-bde-uuid')).to.be.true;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'bde-uuid')).to.be.true;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ALL] }, 'other-bde-uuid')).to.be.true;
         });
 
         it('should return true if user has permission ADD_USER and tries to add user in its own BDE', () => {
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ADD_USER] }, 'bde-uuid')).to.be.true;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.MANAGE_USERS] }, 'bde-uuid')).to.be.true;
         });
 
         it('should return false if user has permission ADD_USER and tries to add user in an other BDE', () => {
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.ADD_USER] }, 'other-bde-uuid')).to.be.false;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [Permissions.MANAGE_USERS] }, 'other-bde-uuid')).to.be.false;
         });
 
         it('should return false if user has not permission ADD_USER', () => {
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [] }, 'bde-uuid')).to.be.false;
-            expect(canAddUser({ bdeUUID: 'bde-uuid', permissions: [] }, 'other-bde-uuid')).to.be.false;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [] }, 'bde-uuid')).to.be.false;
+            expect(canManageUser({ bdeUUID: 'bde-uuid', permissions: [] }, 'other-bde-uuid')).to.be.false;
         });
 
     });

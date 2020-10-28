@@ -4,7 +4,7 @@ import { ValidatorBuilder } from '../validation';
 import { v4 as uuid } from 'uuid';
 import * as httpCode from '../utils/http-code';
 import { hide } from '../utils/hide';
-import { canAddUser } from '../utils/permissions';
+import { canManageUser } from '../utils/permissions';
 
 export class UsersController {
 
@@ -79,7 +79,7 @@ export class UsersController {
         }
 
         /* Checking user permisson */
-        if (!canAddUser(claims, result.value.bde)) {
+        if (!canManageUser(claims, result.value.bde)) {
             return httpCode.forbidden('You don\'t have the permission to perform this action.');
         }
 
@@ -244,7 +244,7 @@ export class UsersController {
             return httpCode.forbidden('The provided token is invalid.');
         }
 
-        if (!canAddUser(jwtClaims, bdeUUID)) {
+        if (!canManageUser(jwtClaims, bdeUUID)) {
             return httpCode.forbidden('You do not have permission to fetch users for this BDE.');
         }
 
@@ -295,7 +295,7 @@ export class UsersController {
             return httpCode.internalServerError('Unable to fetch user. Contact an adminstrator or retry later.');
         }
 
-        if (canAddUser(jwtClaims, user.bdeUUID) || jwtClaims.uuid === user.userUUID) {
+        if (canManageUser(jwtClaims, user.bdeUUID) || jwtClaims.uuid === user.userUUID) {
             const hidedUser = hide(user, 'password');
             return httpCode.ok({
                 ... hidedUser,
@@ -304,6 +304,58 @@ export class UsersController {
         }
 
         return httpCode.ok(hide(user, 'password', 'email', 'permissions', 'member'));
+    }
+
+
+    /**
+     * Handles a request that aims to delete an user from its UUID.
+     * This method always resolves.
+     * 
+     * @param uuid The user UUID to delete
+     * @param token The JWT to authenticate the user
+     */
+    async deleteUser(uuid: string, token?: string): Promise<httpCode.Response> {
+
+        /* No token were given, we return unauthorized response code */
+        if (!token) {
+            return httpCode.unauthorized('You must authenticate.');
+        }
+
+        /* We verify token validity */
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.forbidden('The given token is invalid.');
+        }
+
+        /* We fetch user to be deleted */
+        let user: User | UnregisteredUser;
+        try {
+            user = await this.usersService.findByUUID(uuid);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.notFound('No user with the given UUID exists.');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Unable to delete user. Contact an adminstrator or retry later.');
+        }
+
+        /* We check the permission */
+        if (!canManageUser(jwtClaims, user.bdeUUID)) {
+            return httpCode.forbidden('You do not have the permission to delete this user.');
+        }
+
+        /* We delete the user */
+        try {
+            await this.usersService.delete(user.userUUID);
+            return httpCode.noContent();
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.notFound('No user with the given UUID exists.');
+            }
+            return httpCode.internalServerError('Unable to delete user. Contact an adminstrator or retry later.');
+        }
     }
 
 }

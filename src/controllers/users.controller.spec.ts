@@ -45,7 +45,7 @@ describe('Users controller', () => {
             bdeUUID: 'bde-uuid',
             firstname: 'Firstname',
             lastname: 'Lastname',
-            permissions: [Permissions.ADD_USER],
+            permissions: [Permissions.MANAGE_USERS],
             uuid: 'the-uuid',
         };
 

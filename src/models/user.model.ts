@@ -83,7 +83,7 @@ export interface Permission {
 
 export const Permissions: {
     ALL: Permission,
-    ADD_USER: Permission,
+    MANAGE_USERS: Permission,
     MANAGE_PERMISSIONS: Permission,
     MANAGE_BDE: Permission,
     MANAGE_EVENTS: Permission,
@@ -101,8 +101,8 @@ export const Permissions: {
     /**
      * This permission allows to add a new unregistered user to the BDE the user having this permission.
      */
-    ADD_USER: {
-        name: 'add_user',
+    MANAGE_USERS: {
+        name: 'add_user', // Legacy value. Maybe to be changed later
         modifiable: true,
     },
 

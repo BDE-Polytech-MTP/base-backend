@@ -27,19 +27,19 @@ export function canManagePermissions(source: { bdeUUID: string, permissions: Per
 }
 
 /**
- * Checks whether or not the given user can add an user to the BDE with the given UUID.
+ * Checks whether or not the given user can manage users of the BDE with the given UUID.
  * 
- * @param source The user trying to add an new user to the bde with the given uuid
- * @param bdeUUID The UUID of the bde to add an user to
+ * @param source The user trying to manage users of the bde with the given uuid
+ * @param bdeUUID The UUID of the bde to manage users of
  */
-export function canAddUser(source: { bdeUUID: string, permissions: Permission[] }, bdeUUID: string): boolean {
+export function canManageUser(source: { bdeUUID: string, permissions: Permission[] }, bdeUUID: string): boolean {
     /* The ALL permission allows to bypass every permission check */
     if (source.permissions.includes(Permissions.ALL)) {
         return true;
     }
 
     /* The user can't add an user if he does not have the ADD_USER permission */
-    if (!source.permissions.includes(Permissions.ADD_USER)) {
+    if (!source.permissions.includes(Permissions.MANAGE_USERS)) {
         return false;
     }
 
