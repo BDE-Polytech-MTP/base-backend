@@ -4,4 +4,5 @@ export interface UserRequest {
     lastname: string;
     bdeUUID: string;
     specialtyName: string;
+    specialtyYear: number;
 }

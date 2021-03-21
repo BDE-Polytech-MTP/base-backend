@@ -44,12 +44,13 @@ export class UsersController {
                                                     .build();
 
     private static REGISTER_VALIDATOR = ValidatorBuilder
-                                            .new<{ email: string, firstname: string, lastname: string, bde: string, specialty: string}>()
+                                            .new<{ email: string, firstname: string, lastname: string, bde: string, specialty: string, year: number}>()
                                             .requires("email").toBeString().matching(UsersController.EMAIL_REGEX)
                                             .requires("firstname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("lastname").toBeString().withMinLength(2).withMaxLength(15)
                                             .requires("bde").toBeString().withMinLength(1)
                                             .requires("specialty").toBeString().withMinLength(1)
+                                            .requires("year").toBeInteger().withMinValue(1).withMaxValue(5)
                                             .build()
 
     constructor(
@@ -381,6 +382,7 @@ export class UsersController {
             lastname: result.value.lastname,
             bdeUUID: result.value.bde,
             specialtyName: result.value.specialty,
+            specialtyYear: result.value.year,
         };
 
         try {
