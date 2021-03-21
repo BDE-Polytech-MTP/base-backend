@@ -1,3 +1,4 @@
+import { UserRequest } from "../models/user-request.model";
 import { User, UnregisteredUser } from "../models/user.model";
 
 /**
@@ -27,6 +28,19 @@ export interface UsersService {
      * @param user The user to create
      */
     create(user: UnregisteredUser): Promise<UnregisteredUser>;
+
+    /**
+     * Adds the given data to the request of accounts.
+     * 
+     * @return the given user request if request is a success
+     * @throws USER_ALREADY_EXISTS if an user with the given email already exists
+     * @throws BDE_NOT_EXISTS if no BDE with the given UUID exists
+     * @throws INVALID_SPECIALTY if the given specialty do not exist
+     * @throws INTERNAL otherwise
+     * 
+     * @param user The user request
+     */
+    register(user: UserRequest): Promise<UserRequest>;
 
     /**
      * Finishes to register the given user.

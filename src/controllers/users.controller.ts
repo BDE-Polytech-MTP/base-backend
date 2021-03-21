@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import * as httpCode from '../utils/http-code';
 import { hide } from '../utils/hide';
 import { canManageUser } from '../utils/permissions';
+import { UserRequest } from "../models/user-request.model";
 
 export class UsersController {
 
@@ -41,6 +42,15 @@ export class UsersController {
                                                     .requires('email').toBeString().matching(UsersController.EMAIL_REGEX)
                                                     .requires('password').toBeString().withMinLength(1)
                                                     .build();
+
+    private static REGISTER_VALIDATOR = ValidatorBuilder
+                                            .new<{ email: string, firstname: string, lastname: string, bde: string, specialty: string}>()
+                                            .requires("email").toBeString().matching(UsersController.EMAIL_REGEX)
+                                            .requires("firstname").toBeString().withMinLength(2).withMaxLength(15)
+                                            .requires("lastname").toBeString().withMinLength(2).withMaxLength(15)
+                                            .requires("bde").toBeString().withMinLength(1)
+                                            .requires("specialty").toBeString().withMinLength(1)
+                                            .build()
 
     constructor(
         private usersService: UsersService, 
@@ -355,6 +365,38 @@ export class UsersController {
                 return httpCode.notFound('No user with the given UUID exists.');
             }
             return httpCode.internalServerError('Unable to delete user. Contact an adminstrator or retry later.');
+        }
+    }
+
+    async register(body: object | null): Promise<httpCode.Response> {
+        /* Validating body request */
+        let result = UsersController.REGISTER_VALIDATOR.validate(body);
+        if (!result.valid) {
+            return httpCode.badRequest(result.error.message);
+        }
+
+        const userRequest: UserRequest = {
+            email: result.value.email,
+            firstname: result.value.firstname,
+            lastname: result.value.lastname,
+            bdeUUID: result.value.bde,
+            specialtyName: result.value.specialty,
+        };
+
+        try {
+            await this.usersService.register(userRequest);
+            return httpCode.created(userRequest);
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_ALREADY_EXISTS) {
+                return httpCode.badRequest('The given email already exist');
+            }
+            if (e.type === UsersErrorType.BDE_NOT_EXISTS) {
+                return httpCode.badRequest('The given BDE UUID do not exist');
+            }
+            if (e.type === UsersErrorType.INVALID_SPECIALTY) {
+                return httpCode.badRequest('The given specialty do not exist');
+            }
+            return httpCode.internalServerError('Unable to process the given user request');
         }
     }
 

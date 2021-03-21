@@ -62,7 +62,7 @@ export class AuthenticationService {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(token);
+                    resolve(token!);
                 }
             });
         })
