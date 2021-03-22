@@ -53,6 +53,12 @@ export class UsersController {
                                             .requires("year").toBeInteger().withMinValue(1).withMaxValue(5)
                                             .build()
 
+    private static VALIDATE_ACCOUNT_REQUEST_VALIDATOR = ValidatorBuilder
+                                            .new<{ email: string, accepted: boolean }>()
+                                            .requires('email').toBeString().matching(UsersController.EMAIL_REGEX)
+                                            .requires('accepted').toBeBoolean()
+                                            .build();
+
     constructor(
         private usersService: UsersService, 
         private authService: AuthenticationService,
@@ -429,6 +435,41 @@ export class UsersController {
             return httpCode.internalServerError('Contact an adminstrator or retry later.');
         }
         return httpCode.ok(users);
+    }
+
+    async validateAccount(bdeUUID: string, body: object | null, token?: string): Promise<httpCode.Response> {
+        if (!token) {
+            return httpCode.unauthorized('You must provide a token.');
+        }
+
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.forbidden('The provided token is invalid.');
+        }
+
+        if (!canManageUser(jwtClaims, bdeUUID)) {
+            return httpCode.forbidden('You do not have permission to fetch account requests for this BDE.');
+        }
+
+        const result = UsersController.VALIDATE_ACCOUNT_REQUEST_VALIDATOR.validate(body);
+        if (!result.valid) {
+            return httpCode.badRequest(result.error.message);
+        }
+
+        try {
+            const unregisteredUser = await this.usersService.processUserRequest(result.value.email, bdeUUID, result.value.accepted);
+            if (unregisteredUser) {
+                await this.mailingService.sendRegistrationMail(unregisteredUser);
+            }
+            return httpCode.ok({ ok: true });
+        } catch (e) {
+            if (e.type === UsersErrorType.USER_NOT_EXISTS) {
+                return httpCode.badRequest('The given email is invalid');
+            }
+            return httpCode.internalServerError('Contact an adminstrator');
+        }
     }
 
 }

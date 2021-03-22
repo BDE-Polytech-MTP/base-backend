@@ -118,6 +118,18 @@ export interface UsersService {
      */
     findAllRequest(bdeUUID: string): Promise<UserRequest[]>;
 
+    /**
+     * Validates or refuses an account request.
+     * 
+     * @param email The email to validate
+     * @param bdeUUID The UUID of the BDE the user requests belongs to
+     * @param accepted Whether are not the request got accepted
+     * 
+     * @throws USER_NOT_EXISTS if no user can be found
+     * @throws INTERNAL otherwise
+     */
+    processUserRequest(email: string, bdeUUID: string, accepted: boolean): Promise<UnregisteredUser | null>;
+
 }
 
 /**
