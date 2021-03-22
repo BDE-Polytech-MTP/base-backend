@@ -108,6 +108,16 @@ export interface UsersService {
      */
     findAll(bdeUUID?: string): Promise<(User | UnregisteredUser)[]>;
 
+    /**
+     * Find all account requests.
+     * 
+     * @param bdeUUID The UUID of the BDE to fetch requests for
+     * 
+     * @throws BDE_NOT_EXISTS if a BDE uuid is provided and no BDE with the given UUID exists
+     * @throws INTERNAL otherwise
+     */
+    findAllRequest(bdeUUID: string): Promise<UserRequest[]>;
+
 }
 
 /**

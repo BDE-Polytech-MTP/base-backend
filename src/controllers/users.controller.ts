@@ -402,4 +402,33 @@ export class UsersController {
         }
     }
 
+    async listAccountsRequestForBde(bdeUUID: string, token?: string): Promise<httpCode.Response> {
+        if (!token) {
+            return httpCode.unauthorized('You must provide a token.');
+        }
+
+        let jwtClaims: JWTClaims;
+        try {
+            jwtClaims = await this.authService.verifyToken(token);
+        } catch (_) {
+            return httpCode.forbidden('The provided token is invalid.');
+        }
+
+        if (!canManageUser(jwtClaims, bdeUUID)) {
+            return httpCode.forbidden('You do not have permission to fetch account requests for this BDE.');
+        }
+
+        let users: UserRequest[];
+        try {
+            users = await this.usersService.findAllRequest(bdeUUID);
+        } catch (e) {
+            if (e.type === UsersErrorType.BDE_NOT_EXISTS) {
+                return httpCode.notFound('This BDE does not exists');
+            }
+            this.loggingService.error(e);
+            return httpCode.internalServerError('Contact an adminstrator or retry later.');
+        }
+        return httpCode.ok(users);
+    }
+
 }
