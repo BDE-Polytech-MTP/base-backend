@@ -5,3 +5,4 @@ export * from './users.service';
 export * from './auth.service';
 export * from './mailing.service';
 export * from './logging.service';
+export * from './vote.service';
