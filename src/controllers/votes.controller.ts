@@ -7,7 +7,7 @@ export class VotesController {
   private static VOTE_VALIDATOR = ValidatorBuilder.new<{ liste: string }>()
     .requires("liste")
     .toBeString()
-    .matching(/^allintech|toutankhatech|$/)
+    .matching(/^allintech|toutankhatech|blanc|$/)
     .build();
 
   constructor(
